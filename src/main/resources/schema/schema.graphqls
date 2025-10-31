@@ -9,6 +9,81 @@ type Especie @key(fields: "id") {
     descripcion: String!
 }
 
+type Cliente @key(fields: "id") {
+    id: ID!
+    nombre: String!
+    apellidos: String!
+    email: String!
+    telefono: String!
+    fechaNacimiento: String!
+}
+
+type Mascota @key(fields: "id") {
+    id: ID!
+    nombre: String!
+    sexo: String!
+    raza: String!
+    fechaNacimiento: String!
+    peso: Float
+    cliente: Cliente!
+    especie: Especie!
+}
+
+type Horario @key(fields: "id") {
+    id: ID!
+    dia: String!
+    horaInicio: String!
+    horaFin: String!
+}
+
+type Cita @key(fields: "id") {
+    id: ID!
+    fechaReservacion: String!
+    motivo: String!
+    fechaProgramada: String!
+    cliente: Cliente!
+    horario: Horario!
+    mascota: Mascota!
+}
+
+type Diagnostico @key(fields: "id") {
+    id: ID!
+    descripcion: String!
+    fechaDiagnostico: String!
+    observaciones: String
+    mascota: Mascota!
+}
+
+type Tratamiento @key(fields: "id") {
+    id: ID!
+    descripcion: String!
+    fechaInicio: String!
+    fechaFin: String
+    instrucciones: String
+    estado: String!
+    diagnostico: Diagnostico!
+}
+
+type Vacuna @key(fields: "id") {
+    id: ID!
+    nombre: String!
+    descripcion: String!
+    duracionMeses: Int
+    laboratorio: String!
+    edadMinimaDias: Int
+}
+
+type MascotaVacuna @key(fields: "id") {
+    id: ID!
+    fechaAplicacion: String!
+    fechaProximaDosis: String
+    veterinario: String!
+    observaciones: String
+    lote: String
+    mascota: Mascota!
+    vacuna: Vacuna!
+}
+
 input EspecieInput {
     descripcion: String!
 }
@@ -18,14 +93,244 @@ input EspecieUpdateInput {
     descripcion: String!
 }
 
+input ClienteInput {
+    nombre: String!
+    apellidos: String!
+    email: String!
+    telefono: String!
+    fechaNacimiento: String!
+}
+
+input ClienteUpdateInput {
+    id: ID!
+    nombre: String!
+    apellidos: String!
+    email: String!
+    telefono: String!
+    fechaNacimiento: String!
+}
+
+input MascotaInput {
+    nombre: String!
+    sexo: String!
+    raza: String!
+    fechaNacimiento: String!
+    peso: Float
+    clienteId: ID!
+    especieId: ID!
+}
+
+input MascotaUpdateInput {
+    id: ID!
+    nombre: String!
+    sexo: String!
+    raza: String!
+    fechaNacimiento: String!
+    peso: Float
+    clienteId: ID!
+    especieId: ID!
+}
+
+input HorarioInput {
+    dia: String!
+    horaInicio: String!
+    horaFin: String!
+}
+
+input HorarioUpdateInput {
+    id: ID!
+    dia: String!
+    horaInicio: String!
+    horaFin: String!
+}
+
+input CitaInput {
+    motivo: String!
+    fechaProgramada: String!
+    clienteId: ID!
+    horarioId: ID!
+    mascotaId: ID!
+}
+
+input CitaUpdateInput {
+    id: ID!
+    motivo: String
+    fechaProgramada: String
+    clienteId: ID
+    horarioId: ID
+    mascotaId: ID
+}
+
+input DiagnosticoInput {
+    descripcion: String!
+    observaciones: String
+    mascotaId: ID!
+}
+
+input DiagnosticoUpdateInput {
+    id: ID!
+    descripcion: String
+    observaciones: String
+    mascotaId: ID
+}
+
+input TratamientoInput {
+    descripcion: String!
+    fechaInicio: String!
+    fechaFin: String
+    instrucciones: String
+    estado: String!
+    diagnosticoId: ID!
+}
+
+input TratamientoUpdateInput {
+    id: ID!
+    descripcion: String
+    fechaInicio: String
+    fechaFin: String
+    instrucciones: String
+    estado: String
+    diagnosticoId: ID
+}
+
+input VacunaInput {
+    nombre: String!
+    descripcion: String!
+    duracionMeses: Int
+    laboratorio: String!
+    edadMinimaDias: Int
+}
+
+input VacunaUpdateInput {
+    id: ID!
+    nombre: String
+    descripcion: String
+    duracionMeses: Int
+    laboratorio: String
+    edadMinimaDias: Int
+}
+
+input MascotaVacunaInput {
+    fechaAplicacion: String!
+    fechaProximaDosis: String
+    veterinario: String!
+    observaciones: String
+    lote: String
+    mascotaId: ID!
+    vacunaId: ID!
+}
+
+input MascotaVacunaUpdateInput {
+    id: ID!
+    fechaAplicacion: String
+    fechaProximaDosis: String
+    veterinario: String
+    observaciones: String
+    lote: String
+    mascotaId: ID
+    vacunaId: ID
+}
+
 type Query {
+    # Consultas de Especie
     especies: [Especie!]!
     especie(id: ID!): Especie
     especieByDescripcion(descripcion: String!): Especie
+    
+    # Consultas de Cliente
+    clientes: [Cliente!]!
+    cliente(id: ID!): Cliente
+    clienteByEmail(email: String!): Cliente
+    searchClientes(searchTerm: String!): [Cliente!]!
+    
+    # Consultas de Mascota
+    mascotas: [Mascota!]!
+    mascota(id: ID!): Mascota
+    mascotasByCliente(clienteId: ID!): [Mascota!]!
+    mascotasByEspecie(especieId: ID!): [Mascota!]!
+    searchMascotas(searchTerm: String!): [Mascota!]!
+    mascotasBySexo(sexo: String!): [Mascota!]!
+    
+    # Consultas de Horario
+    horarios: [Horario!]!
+    horario(id: ID!): Horario
+    horariosByDia(dia: String!): [Horario!]!
+    
+    # Consultas de Cita
+    citas: [Cita!]!
+    cita(id: ID!): Cita
+    citasByCliente(clienteId: ID!): [Cita!]!
+    citasByMascota(mascotaId: ID!): [Cita!]!
+    citasByHorario(horarioId: ID!): [Cita!]!
+    
+    # Consultas de Diagnóstico
+    diagnosticos: [Diagnostico!]!
+    diagnostico(id: ID!): Diagnostico
+    diagnosticosByMascota(mascotaId: ID!): [Diagnostico!]!
+    
+    # Consultas de Tratamiento
+    tratamientos: [Tratamiento!]!
+    tratamiento(id: ID!): Tratamiento
+    tratamientosByDiagnostico(diagnosticoId: ID!): [Tratamiento!]!
+    tratamientosByEstado(estado: String!): [Tratamiento!]!
+    
+    # Consultas de Vacuna
+    vacunas: [Vacuna!]!
+    vacuna(id: ID!): Vacuna
+    vacunasByNombre(nombre: String!): [Vacuna!]!
+    vacunasByLaboratorio(laboratorio: String!): [Vacuna!]!
+    
+    # Consultas de MascotaVacuna
+    mascotaVacunas: [MascotaVacuna!]!
+    mascotaVacuna(id: ID!): MascotaVacuna
+    vacunasByMascota(mascotaId: ID!): [MascotaVacuna!]!
+    aplicacionesByVacuna(vacunaId: ID!): [MascotaVacuna!]!
+    vacunasPorVencer(fecha: String!): [MascotaVacuna!]!
 }
 
 type Mutation {
+    # Mutaciones de Especie
     createEspecie(input: EspecieInput!): Especie!
     updateEspecie(input: EspecieUpdateInput!): Especie!
     deleteEspecie(id: ID!): Boolean!
+    
+    # Mutaciones de Cliente
+    createCliente(input: ClienteInput!): Cliente!
+    updateCliente(input: ClienteUpdateInput!): Cliente!
+    deleteCliente(id: ID!): Boolean!
+    
+    # Mutaciones de Mascota
+    createMascota(input: MascotaInput!): Mascota!
+    updateMascota(input: MascotaUpdateInput!): Mascota!
+    deleteMascota(id: ID!): Boolean!
+    
+    # Mutaciones de Horario
+    createHorario(input: HorarioInput!): Horario!
+    updateHorario(input: HorarioUpdateInput!): Horario!
+    deleteHorario(id: ID!): Boolean!
+    
+    # Mutaciones de Cita
+    createCita(input: CitaInput!): Cita!
+    updateCita(input: CitaUpdateInput!): Cita!
+    deleteCita(id: ID!): Boolean!
+    
+    # Mutaciones de Diagnóstico
+    createDiagnostico(input: DiagnosticoInput!): Diagnostico!
+    updateDiagnostico(input: DiagnosticoUpdateInput!): Diagnostico!
+    deleteDiagnostico(id: ID!): Boolean!
+    
+    # Mutaciones de Tratamiento
+    createTratamiento(input: TratamientoInput!): Tratamiento!
+    updateTratamiento(input: TratamientoUpdateInput!): Tratamiento!
+    deleteTratamiento(id: ID!): Boolean!
+    
+    # Mutaciones de Vacuna
+    createVacuna(input: VacunaInput!): Vacuna!
+    updateVacuna(input: VacunaUpdateInput!): Vacuna!
+    deleteVacuna(id: ID!): Boolean!
+    
+    # Mutaciones de MascotaVacuna
+    aplicarVacuna(input: MascotaVacunaInput!): MascotaVacuna!
+    updateMascotaVacuna(input: MascotaVacunaUpdateInput!): MascotaVacuna!
+    deleteMascotaVacuna(id: ID!): Boolean!
 }

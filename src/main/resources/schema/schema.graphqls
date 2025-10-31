@@ -1,0 +1,31 @@
+directive @key(fields: String!) on OBJECT | INTERFACE
+directive @extends on OBJECT | INTERFACE
+directive @external on FIELD_DEFINITION
+directive @requires(fields: String!) on FIELD_DEFINITION
+directive @provides(fields: String!) on FIELD_DEFINITION
+
+type Especie @key(fields: "id") {
+    id: ID!
+    descripcion: String!
+}
+
+input EspecieInput {
+    descripcion: String!
+}
+
+input EspecieUpdateInput {
+    id: ID!
+    descripcion: String!
+}
+
+type Query {
+    especies: [Especie!]!
+    especie(id: ID!): Especie
+    especieByDescripcion(descripcion: String!): Especie
+}
+
+type Mutation {
+    createEspecie(input: EspecieInput!): Especie!
+    updateEspecie(input: EspecieUpdateInput!): Especie!
+    deleteEspecie(id: ID!): Boolean!
+}

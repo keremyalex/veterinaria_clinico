@@ -1,0 +1,68 @@
+# Build artifacts
+target/
+build/
+!target/*.jar
+!target/lib/*
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.settings/
+.project
+.classpath
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Version control
+.git/
+.gitignore
+
+# Environment files (security)
+.env
+.env.local
+.env.*.local
+
+# Docker files (avoid recursive copy)
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Documentation (será copiada al README)
+*.md
+docs/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Package files
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Node modules (si hubiera frontend)
+node_modules/
+npm-debug.log*
+
+# Maven wrapper (ya se copia explícitamente)
+.mvn/wrapper/maven-wrapper.jar

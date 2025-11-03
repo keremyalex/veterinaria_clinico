@@ -1,22 +1,82 @@
 version: '3.8'
+
 services:
+  # Base de datos PostgreSQL
   postgres:
-    image: postgres:15
-    container_name: microservicio_clinico_postgres
+    image: postgres:15-alpine
+    container_name: veterinaria-postgres
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: veterinaria_clinico
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5433:5432"
+      POSTGRES_DB: veterinaria_db
+      POSTGRES_USER: vet_admin
+      POSTGRES_PASSWORD: VetClinic2025!SecurePass
+      PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5433:5432"
     networks:
-      - veterinaria_network
+      - veterinaria-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vet_admin -d veterinaria_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  # Aplicación Spring Boot
+  microservicio-clinico:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: veterinaria-app
+    restart: unless-stopped
+    environment:
+      # Configuración de base de datos
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/veterinaria_db
+      SPRING_DATASOURCE_USERNAME: vet_admin
+      SPRING_DATASOURCE_PASSWORD: VetClinic2025!SecurePass
+      
+      # Configuración JPA/Hibernate
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: 'true'
+      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: 'true'
+      
+      # Configuración del servidor
+      SERVER_PORT: 8081
+      
+      # Configuración de logging
+      LOGGING_LEVEL_COM_EXAMPLE_MICROSERVICIO_CLINICO: DEBUG
+      LOGGING_LEVEL_ORG_HIBERNATE_SQL: DEBUG
+      
+      # Configuración GraphQL
+      DGS_GRAPHQL_GRAPHIQL_ENABLED: 'true'
+      
+      # Variables de entorno Java
+      JAVA_OPTS: "-Xms512m -Xmx1024m -XX:+UseG1GC"
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - veterinaria-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+# Volúmenes persistentes
 volumes:
   postgres_data:
+    driver: local
 
+# Red personalizada
 networks:
-  veterinaria_network:
+  veterinaria-network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

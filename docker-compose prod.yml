@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # Base de datos PostgreSQL
+  postgres:
+    image: postgres:15
+    container_name: almacen_postgres
+    environment:
+      POSTGRES_DB: veterinaria_db
+      POSTGRES_USER: vet_admin
+      POSTGRES_PASSWORD: VetClinic2025!SecurePass
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - almacen_network
+
+  # Aplicación Spring Boot
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: veterinaria-app
+    depends_on:
+      - postgres
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/veterinaria_db
+      SPRING_DATASOURCE_USERNAME: vet_admin
+      SPRING_DATASOURCE_PASSWORD: VetClinic2025!SecurePass
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: true
+    ports:
+      - "8081:8081"
+    networks:
+      - almacen_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  almacen_network:
+    driver: bridge 

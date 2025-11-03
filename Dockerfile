@@ -1,7 +1,7 @@
 # Multi-stage build para optimizar el tamaño de la imagen final
 
 # Etapa 1: Build de la aplicación
-FROM openjdk:17-jdk-alpine AS build
+FROM eclipse-temurin:17-jdk-alpine AS build
 
 # Instalar Maven
 RUN apk add --no-cache maven
@@ -25,7 +25,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Etapa 2: Imagen de ejecución
-FROM openjdk:17-jre-alpine
+FROM eclipse-temurin:17-jre-alpine
 
 # Crear usuario no-root para seguridad
 RUN addgroup -g 1001 -S appgroup && \

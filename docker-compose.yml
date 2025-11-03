@@ -20,9 +20,10 @@ services:
       - veterinaria-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U vet_admin -d veterinaria_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
 
   # Aplicación Spring Boot
   microservicio-clinico:
@@ -65,8 +66,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 60s
+      retries: 5
+      start_period: 120s
 
 # Volúmenes persistentes
 volumes:

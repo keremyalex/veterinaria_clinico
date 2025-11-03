@@ -35,7 +35,7 @@ RUN addgroup -g 1001 -S appgroup && \
 RUN apk add --no-cache tzdata curl
 
 # Configurar timezone
-ENV TZ=America/Bogota
+ENV TZ=America/La_Paz
 
 # Establecer directorio de trabajo
 WORKDIR /app

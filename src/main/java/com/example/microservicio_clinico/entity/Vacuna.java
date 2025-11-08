@@ -1,12 +1,14 @@
 package com.example.microservicio_clinico.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+
+import java.util.List;
 
 @Entity
-@Table(name = "vacunas")
+@Table(name = "vacuna")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -14,20 +16,12 @@ public class Vacuna {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
     
-    @Column(nullable = false, length = 100)
-    private String nombre;
-    
-    @Column(length = 500)
+    @Column(nullable = false)
     private String descripcion;
     
-    @Column(name = "duracion_meses")
-    private Integer duracionMeses; // Duración de inmunidad en meses
-    
-    @Column(length = 50)
-    private String laboratorio;
-    
-    @Column(name = "edad_minima_dias")
-    private Integer edadMinimaDias; // Edad mínima para aplicar la vacuna
+    // Relación uno a muchos con DetalleVacunacion
+    @OneToMany(mappedBy = "vacuna", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<DetalleVacunacion> detallesVacunacion;
 }

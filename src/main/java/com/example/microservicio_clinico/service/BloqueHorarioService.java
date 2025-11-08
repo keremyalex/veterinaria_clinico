@@ -1,123 +1,206 @@
 package com.example.microservicio_clinico.service;
 
+import com.example.microservicio_clinico.dto.*;
 import com.example.microservicio_clinico.entity.BloqueHorario;
 import com.example.microservicio_clinico.entity.Doctor;
 import com.example.microservicio_clinico.repository.BloqueHorarioRepository;
 import com.example.microservicio_clinico.repository.DoctorRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 @Transactional
 public class BloqueHorarioService {
     
     private final BloqueHorarioRepository bloqueHorarioRepository;
     private final DoctorRepository doctorRepository;
+    private final DoctorService doctorService;
     
-    public List<BloqueHorario> findAll() {
-        return bloqueHorarioRepository.findAll();
-    }
-    
-    public Optional<BloqueHorario> findById(Long id) {
-        return bloqueHorarioRepository.findById(id);
-    }
-    
-    public List<BloqueHorario> findByDoctorId(Long doctorId) {
-        return bloqueHorarioRepository.findByDoctorIdOrderByDiaAscHoraInicioAsc(doctorId);
-    }
-    
-    public List<BloqueHorario> findByDia(String dia) {
-        return bloqueHorarioRepository.findByDia(dia);
-    }
-    
-    public List<BloqueHorario> findByDoctorIdAndDia(Long doctorId, String dia) {
-        return bloqueHorarioRepository.findByDoctorIdAndDia(doctorId, dia);
-    }
-    
-    public List<BloqueHorario> findDisponibleParaHora(Long doctorId, String dia, LocalTime hora) {
-        return bloqueHorarioRepository.findByDoctorIdAndDiaAndHoraEnRango(doctorId, dia, hora);
-    }
-    
-    public boolean existeConflictoHorario(Long doctorId, LocalTime horaInicio, LocalTime horaFin) {
-        List<BloqueHorario> conflictos = bloqueHorarioRepository.findByDoctorIdAndHorarioSolapado(doctorId, horaInicio, horaFin);
-        return !conflictos.isEmpty();
-    }
-    
-    public BloqueHorario save(BloqueHorario bloqueHorario) {
-        return bloqueHorarioRepository.save(bloqueHorario);
-    }
-    
-    public BloqueHorario create(BloqueHorario bloqueHorario) {
-        // Validar que el doctor existe
-        if (bloqueHorario.getDoctor() == null || bloqueHorario.getDoctor().getId() == null) {
-            throw new RuntimeException("Debe especificar un doctor válido para el bloque horario");
+    // Crear nuevo bloque horario
+    public BloqueHorarioOutput crearBloqueHorario(BloqueHorarioInput input) {
+        log.info("Creando nuevo bloque horario para doctor ID: {} el día {}", 
+                input.getDoctorId(), input.getDiasemana());
+        
+        // Validar que el doctor exista
+        Doctor doctor = doctorRepository.findById(input.getDoctorId())
+            .orElseThrow(() -> new RuntimeException("Doctor no encontrado con ID: " + input.getDoctorId()));
+        
+        // Validar que la hora final sea posterior a la inicial
+        if (!input.getHorafinal().isAfter(input.getHorainicio())) {
+            throw new RuntimeException("La hora final debe ser posterior a la hora inicial");
         }
         
-        Doctor doctor = doctorRepository.findById(bloqueHorario.getDoctor().getId())
-            .orElseThrow(() -> new RuntimeException("Doctor no encontrado con ID: " + bloqueHorario.getDoctor().getId()));
+        // Validar que no haya conflictos de horario para el mismo doctor y día
+        Long conflictos = bloqueHorarioRepository.countConflictingSchedules(
+            input.getDoctorId(), 
+            input.getDiasemana(), 
+            input.getHorainicio(), 
+            input.getHorafinal()
+        );
         
-        // Validar que hora inicio sea menor que hora fin
-        if (bloqueHorario.getHoraInicio().isAfter(bloqueHorario.getHoraFin()) || 
-            bloqueHorario.getHoraInicio().equals(bloqueHorario.getHoraFin())) {
-            throw new RuntimeException("La hora de inicio debe ser menor que la hora de fin");
+        if (conflictos > 0) {
+            throw new RuntimeException("Ya existe un bloque horario activo que se superpone con el horario propuesto");
         }
         
-        // Validar que no exista conflicto de horarios
-        if (existeConflictoHorario(doctor.getId(), bloqueHorario.getHoraInicio(), bloqueHorario.getHoraFin())) {
-            throw new RuntimeException("Ya existe un bloque horario que se solapa con el horario especificado");
-        }
-        
+        BloqueHorario bloqueHorario = new BloqueHorario();
+        bloqueHorario.setDiasemana(input.getDiasemana());
+        bloqueHorario.setHorainicio(input.getHorainicio());
+        bloqueHorario.setHorafinal(input.getHorafinal());
+        bloqueHorario.setActivo(input.getActivo());
         bloqueHorario.setDoctor(doctor);
-        return bloqueHorarioRepository.save(bloqueHorario);
+        
+        BloqueHorario savedBloque = bloqueHorarioRepository.save(bloqueHorario);
+        log.info("Bloque horario creado exitosamente con ID: {}", savedBloque.getId());
+        
+        return convertirAOutput(savedBloque);
     }
     
-    public BloqueHorario update(Long id, BloqueHorario bloqueHorarioActualizado) {
-        BloqueHorario bloqueExistente = bloqueHorarioRepository.findById(id)
+    // Actualizar bloque horario
+    public BloqueHorarioOutput actualizarBloqueHorario(BloqueHorarioUpdateInput input) {
+        log.info("Actualizando bloque horario con ID: {}", input.getId());
+        
+        BloqueHorario bloqueHorario = bloqueHorarioRepository.findById(input.getId())
+            .orElseThrow(() -> new RuntimeException("Bloque horario no encontrado con ID: " + input.getId()));
+        
+        // Actualizar doctor si se proporciona
+        if (input.getDoctorId() != null && !input.getDoctorId().equals(bloqueHorario.getDoctor().getId())) {
+            Doctor doctor = doctorRepository.findById(input.getDoctorId())
+                .orElseThrow(() -> new RuntimeException("Doctor no encontrado con ID: " + input.getDoctorId()));
+            bloqueHorario.setDoctor(doctor);
+        }
+        
+        // Actualizar otros campos si se proporcionan
+        if (input.getDiasemana() != null) bloqueHorario.setDiasemana(input.getDiasemana());
+        if (input.getHorainicio() != null) bloqueHorario.setHorainicio(input.getHorainicio());
+        if (input.getHorafinal() != null) bloqueHorario.setHorafinal(input.getHorafinal());
+        if (input.getActivo() != null) bloqueHorario.setActivo(input.getActivo());
+        
+        // Validar horarios después de las actualizaciones
+        if (!bloqueHorario.getHorafinal().isAfter(bloqueHorario.getHorainicio())) {
+            throw new RuntimeException("La hora final debe ser posterior a la hora inicial");
+        }
+        
+        BloqueHorario updatedBloque = bloqueHorarioRepository.save(bloqueHorario);
+        log.info("Bloque horario actualizado exitosamente con ID: {}", updatedBloque.getId());
+        
+        return convertirAOutput(updatedBloque);
+    }
+    
+    // Obtener bloque horario por ID
+    @Transactional(readOnly = true)
+    public BloqueHorarioOutput obtenerBloqueHorarioPorId(Integer id) {
+        log.info("Obteniendo bloque horario por ID: {}", id);
+        
+        BloqueHorario bloqueHorario = bloqueHorarioRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Bloque horario no encontrado con ID: " + id));
         
-        // Validar doctor si se cambió
-        if (bloqueHorarioActualizado.getDoctor() != null && 
-            bloqueHorarioActualizado.getDoctor().getId() != null &&
-            !bloqueHorarioActualizado.getDoctor().getId().equals(bloqueExistente.getDoctor().getId())) {
-            
-            Doctor nuevoDoctor = doctorRepository.findById(bloqueHorarioActualizado.getDoctor().getId())
-                .orElseThrow(() -> new RuntimeException("Doctor no encontrado con ID: " + bloqueHorarioActualizado.getDoctor().getId()));
-            
-            bloqueExistente.setDoctor(nuevoDoctor);
-        }
-        
-        // Validar horas
-        LocalTime nuevaHoraInicio = bloqueHorarioActualizado.getHoraInicio() != null ? 
-            bloqueHorarioActualizado.getHoraInicio() : bloqueExistente.getHoraInicio();
-        LocalTime nuevaHoraFin = bloqueHorarioActualizado.getHoraFin() != null ? 
-            bloqueHorarioActualizado.getHoraFin() : bloqueExistente.getHoraFin();
-            
-        if (nuevaHoraInicio.isAfter(nuevaHoraFin) || nuevaHoraInicio.equals(nuevaHoraFin)) {
-            throw new RuntimeException("La hora de inicio debe ser menor que la hora de fin");
-        }
-        
-        // Actualizar campos
-        bloqueExistente.setDia(bloqueHorarioActualizado.getDia());
-        bloqueExistente.setHoraInicio(nuevaHoraInicio);
-        bloqueExistente.setHoraFin(nuevaHoraFin);
-        
-        return bloqueHorarioRepository.save(bloqueExistente);
+        return convertirAOutput(bloqueHorario);
     }
     
-    public void deleteById(Long id) {
+    // Obtener todos los bloques horarios
+    @Transactional(readOnly = true)
+    public List<BloqueHorarioOutput> obtenerTodosLosBloques() {
+        log.info("Obteniendo todos los bloques horarios");
+        
+        return bloqueHorarioRepository.findAll()
+            .stream()
+            .map(this::convertirAOutput)
+            .collect(Collectors.toList());
+    }
+    
+    // Obtener bloques horarios por doctor
+    @Transactional(readOnly = true)
+    public List<BloqueHorarioOutput> obtenerBloquesPorDoctor(Integer doctorId) {
+        log.info("Obteniendo bloques horarios del doctor ID: {}", doctorId);
+        
+        return bloqueHorarioRepository.findByDoctorId(doctorId)
+            .stream()
+            .map(this::convertirAOutput)
+            .collect(Collectors.toList());
+    }
+    
+    // Obtener bloques horarios activos por doctor
+    @Transactional(readOnly = true)
+    public List<BloqueHorarioOutput> obtenerBloquesActivosPorDoctor(Integer doctorId) {
+        log.info("Obteniendo bloques horarios activos del doctor ID: {}", doctorId);
+        
+        return bloqueHorarioRepository.findByDoctorIdAndActivo(doctorId, 1)
+            .stream()
+            .map(this::convertirAOutput)
+            .collect(Collectors.toList());
+    }
+    
+    // Obtener bloques horarios por día
+    @Transactional(readOnly = true)
+    public List<BloqueHorarioOutput> obtenerBloquesPorDia(Integer diasemana) {
+        log.info("Obteniendo bloques horarios del día: {}", diasemana);
+        
+        return bloqueHorarioRepository.findByDiasemanaAndActivo(diasemana, 1)
+            .stream()
+            .map(this::convertirAOutput)
+            .collect(Collectors.toList());
+    }
+    
+    // Obtener bloques horarios de un doctor por día
+    @Transactional(readOnly = true)
+    public List<BloqueHorarioOutput> obtenerBloquesPorDoctorYDia(Integer doctorId, Integer diasemana) {
+        log.info("Obteniendo bloques horarios del doctor ID: {} para el día: {}", doctorId, diasemana);
+        
+        return bloqueHorarioRepository.findByDoctorIdAndDiasemanaAndActivo(doctorId, diasemana, 1)
+            .stream()
+            .map(this::convertirAOutput)
+            .collect(Collectors.toList());
+    }
+    
+    // Eliminar bloque horario
+    public boolean eliminarBloqueHorario(Integer id) {
+        log.info("Eliminando bloque horario con ID: {}", id);
+        
         if (!bloqueHorarioRepository.existsById(id)) {
             throw new RuntimeException("Bloque horario no encontrado con ID: " + id);
         }
+        
         bloqueHorarioRepository.deleteById(id);
+        log.info("Bloque horario eliminado exitosamente con ID: {}", id);
+        
+        return true;
     }
     
-    public boolean existsById(Long id) {
-        return bloqueHorarioRepository.existsById(id);
+    // Método privado para convertir Entity a DTO
+    private BloqueHorarioOutput convertirAOutput(BloqueHorario bloqueHorario) {
+        BloqueHorarioOutput output = new BloqueHorarioOutput();
+        output.setId(bloqueHorario.getId());
+        output.setDiasemana(bloqueHorario.getDiasemana());
+        output.setDiasemanaNombre(obtenerNombreDia(bloqueHorario.getDiasemana()));
+        output.setHorainicio(bloqueHorario.getHorainicio());
+        output.setHorafinal(bloqueHorario.getHorafinal());
+        output.setActivo(bloqueHorario.getActivo());
+        
+        // Convertir doctor
+        output.setDoctor(doctorService.obtenerDoctorPorId(bloqueHorario.getDoctor().getId()));
+        
+        return output;
+    }
+    
+    // Método helper para obtener nombre del día
+    private String obtenerNombreDia(Integer dia) {
+        return switch (dia) {
+            case 1 -> "Lunes";
+            case 2 -> "Martes";
+            case 3 -> "Miércoles";
+            case 4 -> "Jueves";
+            case 5 -> "Viernes";
+            case 6 -> "Sábado";
+            case 7 -> "Domingo";
+            default -> "Desconocido";
+        };
     }
 }

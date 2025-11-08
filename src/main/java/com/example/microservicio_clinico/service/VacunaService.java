@@ -1,9 +1,8 @@
 package com.example.microservicio_clinico.service;
 
+import com.example.microservicio_clinico.dto.*;
 import com.example.microservicio_clinico.entity.Vacuna;
 import com.example.microservicio_clinico.repository.VacunaRepository;
-import com.example.microservicio_clinico.dto.VacunaInputDTO;
-import com.example.microservicio_clinico.dto.VacunaUpdateDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -11,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -20,72 +20,89 @@ public class VacunaService {
     
     private final VacunaRepository vacunaRepository;
     
-    public Vacuna create(VacunaInputDTO input) {
-        log.info("Creando vacuna con input: {}", input);
+    // Crear nueva vacuna
+    public VacunaOutput crearVacuna(VacunaInput input) {
+        log.info("Creando nueva vacuna: {}", input.getDescripcion());
         
-        // Verificar que no exista una vacuna con el mismo nombre
-        Optional<Vacuna> existingVacuna = vacunaRepository.findByNombre(input.getNombre());
-        if (existingVacuna.isPresent()) {
-            throw new RuntimeException("Ya existe una vacuna con el nombre: " + input.getNombre());
+        // Validar que la descripción no exista
+        if (vacunaRepository.findByDescripcion(input.getDescripcion()).isPresent()) {
+            throw new RuntimeException("Ya existe una vacuna con la descripción: " + input.getDescripcion());
         }
         
         Vacuna vacuna = new Vacuna();
-        vacuna.setNombre(input.getNombre());
         vacuna.setDescripcion(input.getDescripcion());
-        vacuna.setDuracionMeses(input.getDuracionMeses());
-        vacuna.setLaboratorio(input.getLaboratorio());
-        vacuna.setEdadMinimaDias(input.getEdadMinimaDias());
         
         Vacuna savedVacuna = vacunaRepository.save(vacuna);
         log.info("Vacuna creada exitosamente con ID: {}", savedVacuna.getId());
         
-        return savedVacuna;
+        return convertirAOutput(savedVacuna);
     }
     
-    public Vacuna update(VacunaUpdateDTO input) {
-        log.info("Actualizando vacuna con input: {}", input);
+    // Actualizar vacuna
+    public VacunaOutput actualizarVacuna(VacunaUpdateInput input) {
+        log.info("Actualizando vacuna con ID: {}", input.getId());
         
-        Long id = Long.parseLong(input.getId());
-        Optional<Vacuna> existingVacuna = vacunaRepository.findById(id);
+        Vacuna vacuna = vacunaRepository.findById(input.getId())
+            .orElseThrow(() -> new RuntimeException("Vacuna no encontrada con ID: " + input.getId()));
         
-        if (existingVacuna.isEmpty()) {
-            throw new RuntimeException("Vacuna no encontrada con ID: " + id);
-        }
-        
-        Vacuna vacuna = existingVacuna.get();
-        
-        if (input.getNombre() != null) {
-            // Verificar que no exista otra vacuna con el mismo nombre
-            Optional<Vacuna> duplicateVacuna = vacunaRepository.findByNombre(input.getNombre());
-            if (duplicateVacuna.isPresent() && !duplicateVacuna.get().getId().equals(id)) {
-                throw new RuntimeException("Ya existe otra vacuna con el nombre: " + input.getNombre());
+        // Validar descripción única si se está cambiando
+        if (input.getDescripcion() != null && !input.getDescripcion().equals(vacuna.getDescripcion())) {
+            if (vacunaRepository.existsByDescripcionAndIdNot(input.getDescripcion(), input.getId())) {
+                throw new RuntimeException("Ya existe otra vacuna con la descripción: " + input.getDescripcion());
             }
-            vacuna.setNombre(input.getNombre());
-        }
-        
-        if (input.getDescripcion() != null) {
             vacuna.setDescripcion(input.getDescripcion());
         }
         
-        if (input.getDuracionMeses() != null) {
-            vacuna.setDuracionMeses(input.getDuracionMeses());
-        }
-        
-        if (input.getLaboratorio() != null) {
-            vacuna.setLaboratorio(input.getLaboratorio());
-        }
-        
-        if (input.getEdadMinimaDias() != null) {
-            vacuna.setEdadMinimaDias(input.getEdadMinimaDias());
-        }
-        
         Vacuna updatedVacuna = vacunaRepository.save(vacuna);
-        log.info("Vacuna actualizada exitosamente: {}", updatedVacuna.getId());
+        log.info("Vacuna actualizada exitosamente con ID: {}", updatedVacuna.getId());
         
-        return updatedVacuna;
+        return convertirAOutput(updatedVacuna);
     }
     
-    public Boolean delete(Long id) {
+    // Obtener vacuna por ID
+    @Transactional(readOnly = true)
+    public VacunaOutput obtenerVacunaPorId(Integer id) {
+        log.info("Obteniendo vacuna por ID: {}", id);
+        
+        Vacuna vacuna = vacunaRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Vacuna no encontrada con ID: " + id));
+        
+        return convertirAOutput(vacuna);
+    }
+    
+    // Obtener todas las vacunas
+    @Transactional(readOnly = true)
+    public List<VacunaOutput> obtenerTodasLasVacunas() {
+        log.info("Obteniendo todas las vacunas");
+        
+        return vacunaRepository.findAllOrderByDescripcion()
+            .stream()
+            .map(this::convertirAOutput)
+            .collect(Collectors.toList());
+    }
+    
+    // Buscar vacunas por descripción
+    @Transactional(readOnly = true)
+    public List<VacunaOutput> buscarVacunasPorDescripcion(String termino) {
+        log.info("Buscando vacunas por término: {}", termino);
+        
+        return vacunaRepository.findByDescripcionContainingIgnoreCase(termino)
+            .stream()
+            .map(this::convertirAOutput)
+            .collect(Collectors.toList());
+    }
+    
+    // Obtener vacuna por descripción exacta
+    @Transactional(readOnly = true)
+    public Optional<VacunaOutput> obtenerVacunaPorDescripcion(String descripcion) {
+        log.info("Obteniendo vacuna por descripción: {}", descripcion);
+        
+        return vacunaRepository.findByDescripcion(descripcion)
+            .map(this::convertirAOutput);
+    }
+    
+    // Eliminar vacuna
+    public boolean eliminarVacuna(Integer id) {
         log.info("Eliminando vacuna con ID: {}", id);
         
         if (!vacunaRepository.existsById(id)) {
@@ -93,38 +110,16 @@ public class VacunaService {
         }
         
         vacunaRepository.deleteById(id);
-        log.info("Vacuna eliminada exitosamente: {}", id);
+        log.info("Vacuna eliminada exitosamente con ID: {}", id);
         
         return true;
     }
     
-    public List<Vacuna> findAll() {
-        log.info("Obteniendo todas las vacunas");
-        return vacunaRepository.findAll();
-    }
-    
-    public Optional<Vacuna> findById(Long id) {
-        log.info("Buscando vacuna con ID: {}", id);
-        return vacunaRepository.findById(id);
-    }
-    
-    public Optional<Vacuna> findByNombre(String nombre) {
-        log.info("Buscando vacuna por nombre: {}", nombre);
-        return vacunaRepository.findByNombre(nombre);
-    }
-    
-    public List<Vacuna> findByLaboratorio(String laboratorio) {
-        log.info("Buscando vacunas por laboratorio: {}", laboratorio);
-        return vacunaRepository.findByLaboratorio(laboratorio);
-    }
-    
-    public List<Vacuna> findByNombreContaining(String nombre) {
-        log.info("Buscando vacunas que contengan: {}", nombre);
-        return vacunaRepository.findByNombreContainingIgnoreCase(nombre);
-    }
-    
-    public List<Vacuna> searchByNombre(String nombre) {
-        log.info("Buscando vacunas que contengan: {}", nombre);
-        return vacunaRepository.findByNombreContainingIgnoreCase(nombre);
+    // Método privado para convertir Entity a DTO
+    private VacunaOutput convertirAOutput(Vacuna vacuna) {
+        VacunaOutput output = new VacunaOutput();
+        output.setId(vacuna.getId());
+        output.setDescripcion(vacuna.getDescripcion());
+        return output;
     }
 }

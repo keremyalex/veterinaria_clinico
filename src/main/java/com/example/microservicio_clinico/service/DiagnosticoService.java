@@ -1,11 +1,10 @@
 package com.example.microservicio_clinico.service;
 
+import com.example.microservicio_clinico.dto.*;
+import com.example.microservicio_clinico.entity.Cita;
 import com.example.microservicio_clinico.entity.Diagnostico;
-import com.example.microservicio_clinico.entity.Mascota;
+import com.example.microservicio_clinico.repository.CitaRepository;
 import com.example.microservicio_clinico.repository.DiagnosticoRepository;
-import com.example.microservicio_clinico.repository.MascotaRepository;
-import com.example.microservicio_clinico.dto.DiagnosticoInputDTO;
-import com.example.microservicio_clinico.dto.DiagnosticoUpdateDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,63 +21,149 @@ import java.util.Optional;
 public class DiagnosticoService {
     
     private final DiagnosticoRepository diagnosticoRepository;
-    private final MascotaRepository mascotaRepository;
+    private final CitaRepository citaRepository;
+    private final CitaService citaService;
     
-    public Diagnostico create(DiagnosticoInputDTO input) {
-        log.info("Creando diagnóstico con input: {}", input);
+    // Crear nuevo diagnóstico
+    public DiagnosticoOutput crearDiagnostico(DiagnosticoInput input) {
+        log.info("Creando nuevo diagnóstico para cita ID: {}", input.getCitaId());
         
-        // Buscar la mascota
-        Long mascotaId = Long.parseLong(input.getMascotaId());
-        Mascota mascota = mascotaRepository.findById(mascotaId)
-            .orElseThrow(() -> new RuntimeException("Mascota no encontrada con ID: " + mascotaId));
-        log.info("Mascota encontrada: {}", mascota.getNombre());
+        // Validar que la cita exista
+        Cita cita = citaRepository.findById(input.getCitaId())
+            .orElseThrow(() -> new RuntimeException("Cita no encontrada con ID: " + input.getCitaId()));
+        
+        // Validar que la cita esté en estado completada o en progreso
+        if (cita.getEstado() != 2 && cita.getEstado() != 3) {
+            throw new RuntimeException("Solo se pueden crear diagnósticos para citas en progreso o completadas");
+        }
         
         Diagnostico diagnostico = new Diagnostico();
         diagnostico.setDescripcion(input.getDescripcion());
         diagnostico.setObservaciones(input.getObservaciones());
-        diagnostico.setFechaDiagnostico(LocalDateTime.now());
-        diagnostico.setMascota(mascota);
+        diagnostico.setFecharegistro(input.getFecharegistro());
+        diagnostico.setCita(cita);
         
         Diagnostico savedDiagnostico = diagnosticoRepository.save(diagnostico);
         log.info("Diagnóstico creado exitosamente con ID: {}", savedDiagnostico.getId());
         
-        return savedDiagnostico;
+        return convertirAOutput(savedDiagnostico);
     }
     
-    public Diagnostico update(Long id, DiagnosticoUpdateDTO input) {
-        log.info("Actualizando diagnóstico con input: {}", input);
+    // Actualizar diagnóstico
+    public DiagnosticoOutput actualizarDiagnostico(DiagnosticoUpdateInput input) {
+        log.info("Actualizando diagnóstico con ID: {}", input.getId());
         
-        Long id = Long.parseLong(input.getId());
-        Optional<Diagnostico> existingDiagnostico = diagnosticoRepository.findById(id);
+        Diagnostico diagnostico = diagnosticoRepository.findById(input.getId())
+            .orElseThrow(() -> new RuntimeException("Diagnóstico no encontrado con ID: " + input.getId()));
         
-        if (existingDiagnostico.isEmpty()) {
-            throw new RuntimeException("Diagnóstico no encontrado con ID: " + id);
+        // Actualizar cita si se proporciona
+        if (input.getCitaId() != null && !input.getCitaId().equals(diagnostico.getCita().getId())) {
+            Cita cita = citaRepository.findById(input.getCitaId())
+                .orElseThrow(() -> new RuntimeException("Cita no encontrada con ID: " + input.getCitaId()));
+            diagnostico.setCita(cita);
         }
         
-        Diagnostico diagnostico = existingDiagnostico.get();
-        
-        if (input.getDescripcion() != null) {
-            diagnostico.setDescripcion(input.getDescripcion());
-        }
-        
-        if (input.getObservaciones() != null) {
-            diagnostico.setObservaciones(input.getObservaciones());
-        }
-        
-        if (input.getMascotaId() != null) {
-            Long mascotaId = Long.parseLong(input.getMascotaId());
-            Mascota mascota = mascotaRepository.findById(mascotaId)
-                .orElseThrow(() -> new RuntimeException("Mascota no encontrada con ID: " + mascotaId));
-            diagnostico.setMascota(mascota);
-        }
+        // Actualizar otros campos si se proporcionan
+        if (input.getDescripcion() != null) diagnostico.setDescripcion(input.getDescripcion());
+        if (input.getObservaciones() != null) diagnostico.setObservaciones(input.getObservaciones());
+        if (input.getFecharegistro() != null) diagnostico.setFecharegistro(input.getFecharegistro());
         
         Diagnostico updatedDiagnostico = diagnosticoRepository.save(diagnostico);
-        log.info("Diagnóstico actualizado exitosamente: {}", updatedDiagnostico.getId());
+        log.info("Diagnóstico actualizado exitosamente con ID: {}", updatedDiagnostico.getId());
         
-        return updatedDiagnostico;
+        return convertirAOutput(updatedDiagnostico);
     }
     
-    public Boolean delete(Long id) {
+    // Obtener diagnóstico por ID
+    @Transactional(readOnly = true)
+    public DiagnosticoOutput obtenerDiagnosticoPorId(Integer id) {
+        log.info("Obteniendo diagnóstico por ID: {}", id);
+        
+        Diagnostico diagnostico = diagnosticoRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Diagnóstico no encontrado con ID: " + id));
+        
+        return convertirAOutput(diagnostico);
+    }
+    
+    // Obtener todos los diagnósticos
+    @Transactional(readOnly = true)
+    public List<DiagnosticoOutput> obtenerTodosLosDiagnosticos() {
+        log.info("Obteniendo todos los diagnósticos");
+        
+        return diagnosticoRepository.findAll()
+            .stream()
+            .map(this::convertirAOutput)
+            .collect(Collectors.toList());
+    }
+    
+    // Obtener diagnósticos por cita
+    @Transactional(readOnly = true)
+    public List<DiagnosticoOutput> obtenerDiagnosticosPorCita(Integer citaId) {
+        log.info("Obteniendo diagnósticos de la cita ID: {}", citaId);
+        
+        return diagnosticoRepository.findByCitaId(citaId)
+            .stream()
+            .map(this::convertirAOutput)
+            .collect(Collectors.toList());
+    }
+    
+    // Obtener diagnósticos por doctor
+    @Transactional(readOnly = true)
+    public List<DiagnosticoOutput> obtenerDiagnosticosPorDoctor(Integer doctorId) {
+        log.info("Obteniendo diagnósticos del doctor ID: {}", doctorId);
+        
+        return diagnosticoRepository.findByDoctorId(doctorId)
+            .stream()
+            .map(this::convertirAOutput)
+            .collect(Collectors.toList());
+    }
+    
+    // Obtener diagnósticos por mascota
+    @Transactional(readOnly = true)
+    public List<DiagnosticoOutput> obtenerDiagnosticosPorMascota(Integer mascotaId) {
+        log.info("Obteniendo diagnósticos de la mascota ID: {}", mascotaId);
+        
+        return diagnosticoRepository.findByMascotaId(mascotaId)
+            .stream()
+            .map(this::convertirAOutput)
+            .collect(Collectors.toList());
+    }
+    
+    // Buscar diagnósticos por descripción
+    @Transactional(readOnly = true)
+    public List<DiagnosticoOutput> buscarDiagnosticosPorDescripcion(String termino) {
+        log.info("Buscando diagnósticos por descripción: {}", termino);
+        
+        return diagnosticoRepository.findByDescripcionContainingIgnoreCase(termino)
+            .stream()
+            .map(this::convertirAOutput)
+            .collect(Collectors.toList());
+    }
+    
+    // Obtener diagnósticos por rango de fechas
+    @Transactional(readOnly = true)
+    public List<DiagnosticoOutput> obtenerDiagnosticosPorRangoFechas(LocalDateTime fechaInicio, LocalDateTime fechaFin) {
+        log.info("Obteniendo diagnósticos entre {} y {}", fechaInicio, fechaFin);
+        
+        return diagnosticoRepository.findByFecharegistroBetween(fechaInicio, fechaFin)
+            .stream()
+            .map(this::convertirAOutput)
+            .collect(Collectors.toList());
+    }
+    
+    // Obtener diagnósticos de un doctor en un rango de fechas
+    @Transactional(readOnly = true)
+    public List<DiagnosticoOutput> obtenerDiagnosticosPorDoctorYFechas(Integer doctorId, LocalDateTime fechaInicio, LocalDateTime fechaFin) {
+        log.info("Obteniendo diagnósticos del doctor ID: {} entre {} y {}", doctorId, fechaInicio, fechaFin);
+        
+        return diagnosticoRepository.findByDoctorIdAndFecharegistroBetween(doctorId, fechaInicio, fechaFin)
+            .stream()
+            .map(this::convertirAOutput)
+            .collect(Collectors.toList());
+    }
+    
+    // Eliminar diagnóstico
+    public boolean eliminarDiagnostico(Integer id) {
         log.info("Eliminando diagnóstico con ID: {}", id);
         
         if (!diagnosticoRepository.existsById(id)) {
@@ -86,23 +171,24 @@ public class DiagnosticoService {
         }
         
         diagnosticoRepository.deleteById(id);
-        log.info("Diagnóstico eliminado exitosamente: {}", id);
+        log.info("Diagnóstico eliminado exitosamente con ID: {}", id);
         
         return true;
     }
     
-    public List<Diagnostico> findAll() {
-        log.info("Obteniendo todos los diagnósticos");
-        return diagnosticoRepository.findAll();
-    }
-    
-    public Optional<Diagnostico> findById(Long id) {
-        log.info("Buscando diagnóstico con ID: {}", id);
-        return diagnosticoRepository.findById(id);
-    }
-    
-    public List<Diagnostico> findByMascotaId(Long mascotaId) {
-        log.info("Buscando diagnósticos por mascota ID: {}", mascotaId);
-        return diagnosticoRepository.findByMascotaIdOrderByFechaDiagnosticoDesc(mascotaId);
+    // Método privado para convertir Entity a DTO
+    private DiagnosticoOutput convertirAOutput(Diagnostico diagnostico) {
+        DiagnosticoOutput output = new DiagnosticoOutput();
+        output.setId(diagnostico.getId());
+        output.setDescripcion(diagnostico.getDescripcion());
+        output.setObservaciones(diagnostico.getObservaciones());
+        output.setFecharegistro(diagnostico.getFecharegistro());
+        
+        // Convertir cita
+        output.setCita(citaService.obtenerCitaPorId(diagnostico.getCita().getId()));
+        
+        // Los tratamientos se cargarán por separado cuando sea necesario
+        
+        return output;
     }
 }

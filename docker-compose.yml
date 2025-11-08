@@ -1,10 +1,10 @@
 version: '3.8'
 
 services:
-  # Base de datos PostgreSQL
+  # Base de datos PostgreSQL para desarrollo local
   postgres:
-    image: postgres:15-alpine
-    container_name: veterinaria-postgres
+    image: postgres:15
+    container_name: veterinaria-postgres-local
     restart: unless-stopped
     environment:
       POSTGRES_DB: veterinaria_db
@@ -15,63 +15,15 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     ports:
-      - "5433:5432"
+      - "5433:5432"  # Puerto 5433 en el host para evitar conflictos con PostgreSQL local
     networks:
       - veterinaria-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U vet_admin -d veterinaria_db"]
-      interval: 5s
-      timeout: 10s
-      retries: 10
-      start_period: 30s
-
-  # Aplicación Spring Boot
-  microservicio-clinico:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: veterinaria-app
-    restart: on-failure:5
-    environment:
-      # Configuración de base de datos
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/veterinaria_db
-      SPRING_DATASOURCE_USERNAME: vet_admin
-      SPRING_DATASOURCE_PASSWORD: VetClinic2025!SecurePass
-      
-      # Configuración JPA/Hibernate
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_JPA_SHOW_SQL: 'true'
-      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: 'true'
-      
-      # Configuración del servidor
-      SERVER_PORT: 8081
-      
-      # Configuración de logging
-      LOGGING_LEVEL_COM_EXAMPLE_MICROSERVICIO_CLINICO: DEBUG
-      LOGGING_LEVEL_ORG_HIBERNATE_SQL: DEBUG
-      
-      # Configuración GraphQL
-      DGS_GRAPHQL_GRAPHIQL_ENABLED: 'true'
-      
-      # Variables de entorno Java
-      JAVA_OPTS: "-Xms512m -Xmx1024m -XX:+UseG1GC"
-      
-      # Debug de red
-      LOGGING_LEVEL_ORG_POSTGRESQL: DEBUG
-      LOGGING_LEVEL_COM_ZAXXER_HIKARI: DEBUG
-    ports:
-      - "8081:8081"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - veterinaria-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
-      interval: 30s
-      timeout: 10s
+      interval: 10s
+      timeout: 5s
       retries: 5
-      start_period: 120s
+      start_period: 30s
 
 # Volúmenes persistentes
 volumes:

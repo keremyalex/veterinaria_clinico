@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.time.LocalDate;
 
 @Entity
@@ -12,25 +13,24 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DetalleVacunacion {
-
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "fecha_aplicacion", nullable = false)
-    private LocalDate fechaAplicacion;
-
-    @Column(name = "proxima_dosis")
-    private LocalDate proximaDosis;
-
-    @Column(length = 500)
-    private String observaciones;
-
+    private Integer id;
+    
+    @Column(name = "fechavacunacion", nullable = false)
+    private LocalDate fechavacunacion;
+    
+    @Column(name = "proximavacunacion")
+    private LocalDate proximavacunacion;
+    
+    // Relación muchos a uno con CarnetVacunacion
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_carnet", nullable = false)
+    @JoinColumn(name = "carnet_vacunacion_id", nullable = false)
     private CarnetVacunacion carnetVacunacion;
-
+    
+    // Relación muchos a uno con Vacuna
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_vacuna", nullable = false)
+    @JoinColumn(name = "vacuna_id", nullable = false)
     private Vacuna vacuna;
 }

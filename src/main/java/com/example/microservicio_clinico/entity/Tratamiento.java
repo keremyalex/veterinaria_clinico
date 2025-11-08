@@ -1,14 +1,12 @@
 package com.example.microservicio_clinico.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "tratamientos")
+@Table(name = "tratamiento")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,25 +14,19 @@ public class Tratamiento {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
     
-    @Column(nullable = false, length = 500)
+    @Column(nullable = false)
+    private String nombre;
+    
+    @Column(nullable = false)
     private String descripcion;
     
-    @Column(name = "fecha_inicio", nullable = false)
-    private LocalDateTime fechaInicio;
+    @Column(nullable = false)
+    private String observaciones;
     
-    @Column(name = "fecha_fin")
-    private LocalDateTime fechaFin;
-    
-    @Column(length = 1000)
-    private String instrucciones;
-    
-    @Column(length = 50)
-    private String estado; // "ACTIVO", "COMPLETADO", "SUSPENDIDO"
-    
-    // Relación ManyToOne con Diagnostico (Un diagnóstico puede tener muchos tratamientos)
-    @ManyToOne(fetch = FetchType.EAGER)
+    // Relación muchos a uno con Diagnostico
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "diagnostico_id", nullable = false)
     private Diagnostico diagnostico;
 }

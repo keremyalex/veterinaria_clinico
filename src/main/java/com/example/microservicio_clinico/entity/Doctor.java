@@ -5,32 +5,42 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Entity
-@Table(name = "doctores")
+@Table(name = "doctor")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Doctor {
-
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false, length = 100)
+    private Integer id;
+    
+    @Column(nullable = false)
     private String nombre;
-
-    @Column(nullable = false, length = 100)
+    
+    @Column(nullable = false)
     private String apellido;
-
-    @Column(unique = true, nullable = false, length = 20)
+    
+    @Column(nullable = false, unique = true)
     private String ci;
-
-    @Column(length = 20)
+    
+    @Column(nullable = false)
     private String telefono;
-
-    @Column(unique = true, nullable = false, length = 100)
+    
+    @Column(nullable = false)
     private String email;
-
-    @Column(name = "foto_url", length = 500)
+    
+    @Column(name = "fotourl")
     private String fotourl;
+    
+    // Relación uno a muchos con BloqueHorario
+    @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<BloqueHorario> bloquesHorarios;
+    
+    // Relación uno a muchos con Cita
+    @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Cita> citas;
 }

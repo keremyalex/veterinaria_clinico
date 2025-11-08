@@ -1,14 +1,15 @@
 package com.example.microservicio_clinico.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
-@Table(name = "citas")
+@Table(name = "cita")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,35 +17,31 @@ public class Cita {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
     
-    @Column(name = "fecha_reservacion", nullable = false)
-    private LocalDateTime fechaReservacion;
+    @Column(name = "fechacreacion", nullable = false)
+    private LocalDateTime fechacreacion;
     
     @Column(nullable = false)
     private String motivo;
     
-    @Column(name = "fecha_programada", nullable = false) 
-    private LocalDateTime fechaProgramada;
+    @Column(name = "fechareserva", nullable = false)
+    private LocalDateTime fechareserva;
     
-    @Column(name = "estado", length = 50)
-    private String estado; // PROGRAMADA, EN_CURSO, FINALIZADA, CANCELADA
+    @Column(nullable = false)
+    private Integer estado;
     
-    @Column(name = "observaciones", length = 1000)
-    private String observaciones;
-    
-    // Relación ManyToOne con Cliente
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "cliente_id", nullable = false)
-    private Cliente cliente;
-    
-    // Relación ManyToOne con Doctor
-    @ManyToOne(fetch = FetchType.EAGER)
+    // Relación muchos a uno con Doctor
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doctor_id", nullable = false)
     private Doctor doctor;
     
-    // Relación ManyToOne con Mascota
-    @ManyToOne(fetch = FetchType.EAGER)
+    // Relación muchos a uno con Mascota
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mascota_id", nullable = false)
     private Mascota mascota;
+    
+    // Relación uno a muchos con Diagnostico
+    @OneToMany(mappedBy = "cita", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Diagnostico> diagnosticos;
 }

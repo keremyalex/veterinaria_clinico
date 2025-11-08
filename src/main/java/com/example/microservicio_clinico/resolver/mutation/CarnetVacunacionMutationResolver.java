@@ -1,51 +1,37 @@
 package com.example.microservicio_clinico.resolver.mutation;
 
-import com.example.microservicio_clinico.dto.CarnetVacunacionInputDTO;
-import com.example.microservicio_clinico.dto.CarnetVacunacionUpdateDTO;
-import com.example.microservicio_clinico.entity.CarnetVacunacion;
-import com.example.microservicio_clinico.entity.Mascota;
+import com.example.microservicio_clinico.dto.CarnetVacunacionInput;
+import com.example.microservicio_clinico.dto.CarnetVacunacionOutput;
+import com.example.microservicio_clinico.dto.CarnetVacunacionUpdateInput;
 import com.example.microservicio_clinico.service.CarnetVacunacionService;
 import com.netflix.graphql.dgs.DgsComponent;
 import com.netflix.graphql.dgs.DgsMutation;
 import com.netflix.graphql.dgs.InputArgument;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @DgsComponent
 @RequiredArgsConstructor
+@Slf4j
 public class CarnetVacunacionMutationResolver {
     
     private final CarnetVacunacionService carnetVacunacionService;
     
     @DgsMutation
-    public CarnetVacunacion crearCarnetVacunacion(@InputArgument CarnetVacunacionInputDTO input) {
-        CarnetVacunacion carnet = new CarnetVacunacion();
-        carnet.setFechaCreacion(input.getFechaCreacion());
-        carnet.setObservaciones(input.getObservaciones());
-        
-        // Establecer mascota
-        Mascota mascota = new Mascota();
-        mascota.setId(input.getMascotaId());
-        carnet.setMascota(mascota);
-        
-        return carnetVacunacionService.create(carnet);
+    public CarnetVacunacionOutput crearCarnetVacunacion(@InputArgument CarnetVacunacionInput input) {
+        log.info("GraphQL Mutation: Creando carnet de vacunación para mascota ID: {}", input.getMascotaId());
+        return carnetVacunacionService.crearCarnetVacunacion(input);
     }
     
     @DgsMutation
-    public CarnetVacunacion actualizarCarnetVacunacion(@InputArgument Long id, @InputArgument CarnetVacunacionUpdateDTO input) {
-        CarnetVacunacion carnet = new CarnetVacunacion();
-        carnet.setFechaCreacion(input.getFechaCreacion());
-        carnet.setObservaciones(input.getObservaciones());
-        
-        return carnetVacunacionService.update(id, carnet);
+    public CarnetVacunacionOutput actualizarCarnetVacunacion(@InputArgument CarnetVacunacionUpdateInput input) {
+        log.info("GraphQL Mutation: Actualizando carnet de vacunación con ID: {}", input.getId());
+        return carnetVacunacionService.actualizarCarnetVacunacion(input);
     }
     
     @DgsMutation
-    public Boolean eliminarCarnetVacunacion(@InputArgument Long id) {
-        try {
-            carnetVacunacionService.deleteById(id);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    public Boolean eliminarCarnetVacunacion(@InputArgument Integer id) {
+        log.info("GraphQL Mutation: Eliminando carnet de vacunación con ID: {}", id);
+        return carnetVacunacionService.eliminarCarnetVacunacion(id);
     }
 }

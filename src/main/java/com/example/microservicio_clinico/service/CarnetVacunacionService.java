@@ -1,133 +1,173 @@
 package com.example.microservicio_clinico.service;
 
+import com.example.microservicio_clinico.dto.*;
 import com.example.microservicio_clinico.entity.CarnetVacunacion;
 import com.example.microservicio_clinico.entity.Mascota;
 import com.example.microservicio_clinico.repository.CarnetVacunacionRepository;
 import com.example.microservicio_clinico.repository.MascotaRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 @Transactional
 public class CarnetVacunacionService {
     
     private final CarnetVacunacionRepository carnetVacunacionRepository;
     private final MascotaRepository mascotaRepository;
+    private final MascotaService mascotaService;
     
-    public List<CarnetVacunacion> findAll() {
-        return carnetVacunacionRepository.findAll();
+    // Crear nuevo carnet de vacunación
+    public CarnetVacunacionOutput crearCarnetVacunacion(CarnetVacunacionInput input) {
+        log.info("Creando nuevo carnet de vacunación para mascota ID: {}", input.getMascotaId());
+        
+        // Validar que la mascota exista
+        Mascota mascota = mascotaRepository.findById(input.getMascotaId())
+            .orElseThrow(() -> new RuntimeException("Mascota no encontrada con ID: " + input.getMascotaId()));
+        
+        // Validar que la mascota no tenga ya un carnet de vacunación
+        if (carnetVacunacionRepository.existsByMascotaId(input.getMascotaId())) {
+            throw new RuntimeException("La mascota ya tiene un carnet de vacunación");
+        }
+        
+        CarnetVacunacion carnet = new CarnetVacunacion();
+        carnet.setFechaemision(input.getFechaemision());
+        carnet.setMascota(mascota);
+        
+        CarnetVacunacion savedCarnet = carnetVacunacionRepository.save(carnet);
+        log.info("Carnet de vacunación creado exitosamente con ID: {}", savedCarnet.getId());
+        
+        return convertirAOutput(savedCarnet);
     }
     
-    public Optional<CarnetVacunacion> findById(Long id) {
-        return carnetVacunacionRepository.findById(id);
+    // Actualizar carnet de vacunación
+    public CarnetVacunacionOutput actualizarCarnetVacunacion(CarnetVacunacionUpdateInput input) {
+        log.info("Actualizando carnet de vacunación con ID: {}", input.getId());
+        
+        CarnetVacunacion carnet = carnetVacunacionRepository.findById(input.getId())
+            .orElseThrow(() -> new RuntimeException("Carnet de vacunación no encontrado con ID: " + input.getId()));
+        
+        // Actualizar mascota si se proporciona
+        if (input.getMascotaId() != null && !input.getMascotaId().equals(carnet.getMascota().getId())) {
+            Mascota mascota = mascotaRepository.findById(input.getMascotaId())
+                .orElseThrow(() -> new RuntimeException("Mascota no encontrada con ID: " + input.getMascotaId()));
+            carnet.setMascota(mascota);
+        }
+        
+        // Actualizar fecha de emisión si se proporciona
+        if (input.getFechaemision() != null) carnet.setFechaemision(input.getFechaemision());
+        
+        CarnetVacunacion updatedCarnet = carnetVacunacionRepository.save(carnet);
+        log.info("Carnet de vacunación actualizado exitosamente con ID: {}", updatedCarnet.getId());
+        
+        return convertirAOutput(updatedCarnet);
     }
     
-    public Optional<CarnetVacunacion> findByMascotaId(Long mascotaId) {
-        return carnetVacunacionRepository.findByMascotaId(mascotaId);
+    // Obtener carnet de vacunación por ID
+    @Transactional(readOnly = true)
+    public CarnetVacunacionOutput obtenerCarnetVacunacionPorId(Integer id) {
+        log.info("Obteniendo carnet de vacunación por ID: {}", id);
+        
+        CarnetVacunacion carnet = carnetVacunacionRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Carnet de vacunación no encontrado con ID: " + id));
+        
+        return convertirAOutput(carnet);
     }
     
-    public List<CarnetVacunacion> findByClienteId(Long clienteId) {
-        return carnetVacunacionRepository.findByClienteId(clienteId);
+    // Obtener todos los carnets de vacunación
+    @Transactional(readOnly = true)
+    public List<CarnetVacunacionOutput> obtenerTodosLosCarnets() {
+        log.info("Obteniendo todos los carnets de vacunación");
+        
+        return carnetVacunacionRepository.findAll()
+            .stream()
+            .map(this::convertirAOutput)
+            .collect(Collectors.toList());
     }
     
-    public List<CarnetVacunacion> findByFechaCreacion(LocalDate fechaCreacion) {
-        return carnetVacunacionRepository.findByFechaCreacion(fechaCreacion);
+    // Obtener carnet de vacunación por mascota
+    @Transactional(readOnly = true)
+    public Optional<CarnetVacunacionOutput> obtenerCarnetPorMascota(Integer mascotaId) {
+        log.info("Obteniendo carnet de vacunación de la mascota ID: {}", mascotaId);
+        
+        return carnetVacunacionRepository.findByMascotaId(mascotaId)
+            .map(this::convertirAOutput);
     }
     
-    public List<CarnetVacunacion> findByFechaCreacionBetween(LocalDate fechaInicio, LocalDate fechaFin) {
-        return carnetVacunacionRepository.findByFechaCreacionBetween(fechaInicio, fechaFin);
+    // Obtener carnets por cliente
+    @Transactional(readOnly = true)
+    public List<CarnetVacunacionOutput> obtenerCarnetsPorCliente(Integer clienteId) {
+        log.info("Obteniendo carnets de vacunación del cliente ID: {}", clienteId);
+        
+        return carnetVacunacionRepository.findByClienteId(clienteId)
+            .stream()
+            .map(this::convertirAOutput)
+            .collect(Collectors.toList());
     }
     
-    public List<CarnetVacunacion> buscarPorNombreMascota(String nombre) {
-        return carnetVacunacionRepository.findByMascotaNombreContaining(nombre);
+    // Obtener carnets por especie
+    @Transactional(readOnly = true)
+    public List<CarnetVacunacionOutput> obtenerCarnetsPorEspecie(Integer especieId) {
+        log.info("Obteniendo carnets de vacunación de la especie ID: {}", especieId);
+        
+        return carnetVacunacionRepository.findByEspecieId(especieId)
+            .stream()
+            .map(this::convertirAOutput)
+            .collect(Collectors.toList());
     }
     
-    public boolean existsByMascotaId(Long mascotaId) {
+    // Obtener carnets por rango de fechas de emisión
+    @Transactional(readOnly = true)
+    public List<CarnetVacunacionOutput> obtenerCarnetsPorRangoFechas(LocalDateTime fechaInicio, LocalDateTime fechaFin) {
+        log.info("Obteniendo carnets de vacunación entre {} y {}", fechaInicio, fechaFin);
+        
+        return carnetVacunacionRepository.findByFechaemisionBetween(fechaInicio, fechaFin)
+            .stream()
+            .map(this::convertirAOutput)
+            .collect(Collectors.toList());
+    }
+    
+    // Verificar si una mascota tiene carnet
+    @Transactional(readOnly = true)
+    public boolean mascotaTieneCarnet(Integer mascotaId) {
+        log.info("Verificando si la mascota ID: {} tiene carnet de vacunación", mascotaId);
+        
         return carnetVacunacionRepository.existsByMascotaId(mascotaId);
     }
     
-    public long contarPorClienteId(Long clienteId) {
-        return carnetVacunacionRepository.countByClienteId(clienteId);
-    }
-    
-    public CarnetVacunacion save(CarnetVacunacion carnetVacunacion) {
-        return carnetVacunacionRepository.save(carnetVacunacion);
-    }
-    
-    public CarnetVacunacion create(CarnetVacunacion carnetVacunacion) {
-        // Validar que la mascota existe
-        if (carnetVacunacion.getMascota() == null || carnetVacunacion.getMascota().getId() == null) {
-            throw new RuntimeException("Debe especificar una mascota válida para el carnet de vacunación");
-        }
+    // Eliminar carnet de vacunación
+    public boolean eliminarCarnetVacunacion(Integer id) {
+        log.info("Eliminando carnet de vacunación con ID: {}", id);
         
-        Mascota mascota = mascotaRepository.findById(carnetVacunacion.getMascota().getId())
-            .orElseThrow(() -> new RuntimeException("Mascota no encontrada con ID: " + carnetVacunacion.getMascota().getId()));
-        
-        // Validar que no existe ya un carnet para esta mascota
-        if (existsByMascotaId(mascota.getId())) {
-            throw new RuntimeException("Ya existe un carnet de vacunación para la mascota con ID: " + mascota.getId());
-        }
-        
-        // Establecer fecha de creación si no se especifica
-        if (carnetVacunacion.getFechaCreacion() == null) {
-            carnetVacunacion.setFechaCreacion(LocalDate.now());
-        }
-        
-        carnetVacunacion.setMascota(mascota);
-        return carnetVacunacionRepository.save(carnetVacunacion);
-    }
-    
-    public CarnetVacunacion update(Long id, CarnetVacunacion carnetActualizado) {
-        CarnetVacunacion carnetExistente = carnetVacunacionRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Carnet de vacunación no encontrado con ID: " + id));
-        
-        // No permitir cambiar la mascota de un carnet existente
-        if (carnetActualizado.getMascota() != null && 
-            carnetActualizado.getMascota().getId() != null &&
-            !carnetActualizado.getMascota().getId().equals(carnetExistente.getMascota().getId())) {
-            throw new RuntimeException("No se puede cambiar la mascota de un carnet de vacunación existente");
-        }
-        
-        // Actualizar campos permitidos
-        if (carnetActualizado.getFechaCreacion() != null) {
-            carnetExistente.setFechaCreacion(carnetActualizado.getFechaCreacion());
-        }
-        
-        if (carnetActualizado.getObservaciones() != null) {
-            carnetExistente.setObservaciones(carnetActualizado.getObservaciones());
-        }
-        
-        return carnetVacunacionRepository.save(carnetExistente);
-    }
-    
-    public void deleteById(Long id) {
         if (!carnetVacunacionRepository.existsById(id)) {
             throw new RuntimeException("Carnet de vacunación no encontrado con ID: " + id);
         }
+        
         carnetVacunacionRepository.deleteById(id);
+        log.info("Carnet de vacunación eliminado exitosamente con ID: {}", id);
+        
+        return true;
     }
     
-    public boolean existsById(Long id) {
-        return carnetVacunacionRepository.existsById(id);
-    }
-    
-    public CarnetVacunacion getOrCreateCarnetForMascota(Long mascotaId) {
-        return findByMascotaId(mascotaId)
-            .orElseGet(() -> {
-                Mascota mascota = mascotaRepository.findById(mascotaId)
-                    .orElseThrow(() -> new RuntimeException("Mascota no encontrada con ID: " + mascotaId));
-                
-                CarnetVacunacion nuevoCarnet = new CarnetVacunacion();
-                nuevoCarnet.setMascota(mascota);
-                nuevoCarnet.setFechaCreacion(LocalDate.now());
-                
-                return carnetVacunacionRepository.save(nuevoCarnet);
-            });
+    // Método privado para convertir Entity a DTO
+    private CarnetVacunacionOutput convertirAOutput(CarnetVacunacion carnet) {
+        CarnetVacunacionOutput output = new CarnetVacunacionOutput();
+        output.setId(carnet.getId());
+        output.setFechaemision(carnet.getFechaemision());
+        
+        // Convertir mascota
+        output.setMascota(mascotaService.obtenerMascotaPorId(carnet.getMascota().getId()));
+        
+        // Los detalles de vacunación se cargarán por separado cuando sea necesario
+        
+        return output;
     }
 }

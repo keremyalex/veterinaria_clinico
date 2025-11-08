@@ -1,64 +1,37 @@
 package com.example.microservicio_clinico.resolver.mutation;
 
-import com.example.microservicio_clinico.dto.MascotaInputDTO;
-import com.example.microservicio_clinico.dto.MascotaUpdateDTO;
-import com.example.microservicio_clinico.entity.Cliente;
-import com.example.microservicio_clinico.entity.Mascota;
+import com.example.microservicio_clinico.dto.MascotaInput;
+import com.example.microservicio_clinico.dto.MascotaOutput;
+import com.example.microservicio_clinico.dto.MascotaUpdateInput;
 import com.example.microservicio_clinico.service.MascotaService;
 import com.netflix.graphql.dgs.DgsComponent;
 import com.netflix.graphql.dgs.DgsMutation;
 import com.netflix.graphql.dgs.InputArgument;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @DgsComponent
 @RequiredArgsConstructor
+@Slf4j
 public class MascotaMutationResolver {
     
     private final MascotaService mascotaService;
     
     @DgsMutation
-    public Mascota crearMascota(@InputArgument MascotaInputDTO input) {
-        Mascota mascota = new Mascota();
-        mascota.setNombre(input.getNombre());
-        mascota.setRaza(input.getRaza());
-        mascota.setColor(input.getColor());
-        mascota.setFotocuf(input.getFotocuf());
-        mascota.setObservaciones(input.getObservaciones());
-        
-        // Establecer cliente
-        Cliente cliente = new Cliente();
-        cliente.setId(input.getClienteId());
-        mascota.setCliente(cliente);
-        
-        return mascotaService.create(mascota);
+    public MascotaOutput crearMascota(@InputArgument MascotaInput input) {
+        log.info("GraphQL Mutation: Creando mascota {} para cliente ID: {}", input.getNombre(), input.getClienteId());
+        return mascotaService.crearMascota(input);
     }
     
     @DgsMutation
-    public Mascota actualizarMascota(@InputArgument Long id, @InputArgument MascotaUpdateDTO input) {
-        Mascota mascota = new Mascota();
-        mascota.setNombre(input.getNombre());
-        mascota.setRaza(input.getRaza());
-        mascota.setColor(input.getColor());
-        mascota.setFotocuf(input.getFotocuf());
-        mascota.setObservaciones(input.getObservaciones());
-        
-        // Establecer cliente si se proporciona
-        if (input.getClienteId() != null) {
-            Cliente cliente = new Cliente();
-            cliente.setId(input.getClienteId());
-            mascota.setCliente(cliente);
-        }
-        
-        return mascotaService.update(id, mascota);
+    public MascotaOutput actualizarMascota(@InputArgument MascotaUpdateInput input) {
+        log.info("GraphQL Mutation: Actualizando mascota con ID: {}", input.getId());
+        return mascotaService.actualizarMascota(input);
     }
     
     @DgsMutation
-    public Boolean eliminarMascota(@InputArgument Long id) {
-        try {
-            mascotaService.deleteById(id);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    public Boolean eliminarMascota(@InputArgument Integer id) {
+        log.info("GraphQL Mutation: Eliminando mascota con ID: {}", id);
+        return mascotaService.eliminarMascota(id);
     }
 }

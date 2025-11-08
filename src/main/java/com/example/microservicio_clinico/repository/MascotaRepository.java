@@ -1,38 +1,38 @@
 package com.example.microservicio_clinico.repository;
 
 import com.example.microservicio_clinico.entity.Mascota;
-import com.example.microservicio_clinico.entity.Cliente;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
-public interface MascotaRepository extends JpaRepository<Mascota, Long> {
+public interface MascotaRepository extends JpaRepository<Mascota, Integer> {
     
-    List<Mascota> findByClienteId(Long clienteId);
+    // Buscar mascotas por cliente ID
+    List<Mascota> findByClienteId(Integer clienteId);
     
-    List<Mascota> findByNombreContainingIgnoreCase(String nombre);
+    // Buscar mascotas por especie ID
+    List<Mascota> findByEspecieId(Integer especieId);
     
-    List<Mascota> findByRazaContainingIgnoreCase(String raza);
+    // Buscar mascotas por nombre
+    @Query("SELECT m FROM Mascota m WHERE LOWER(m.nombre) LIKE LOWER(CONCAT('%', :nombre, '%'))")
+    List<Mascota> findByNombreContainingIgnoreCase(@Param("nombre") String nombre);
     
-    List<Mascota> findBySexo(String sexo);
+    // Buscar mascotas por raza
+    @Query("SELECT m FROM Mascota m WHERE LOWER(m.raza) LIKE LOWER(CONCAT('%', :raza, '%'))")
+    List<Mascota> findByRazaContainingIgnoreCase(@Param("raza") String raza);
     
-    List<Mascota> findByColorContainingIgnoreCase(String color);
+    // Buscar mascotas por sexo
+    List<Mascota> findBySexo(Character sexo);
     
-    @Query("SELECT m FROM Mascota m WHERE m.cliente.id = :clienteId AND LOWER(m.raza) = LOWER(:raza)")
-    List<Mascota> findByClienteIdAndRaza(@Param("clienteId") Long clienteId, @Param("raza") String raza);
+    // Buscar mascotas por rango de fechas de nacimiento
+    List<Mascota> findByFechanacimientoBetween(LocalDate fechaInicio, LocalDate fechaFin);
     
-    @Query("SELECT m FROM Mascota m WHERE " +
-           "LOWER(m.nombre) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
-           "LOWER(m.raza) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
-           "LOWER(m.color) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
-    List<Mascota> searchByNombreOrRazaOrColor(@Param("searchTerm") String searchTerm);
-    
-    Long countByClienteId(Long clienteId);
-    
-    boolean existsByClienteIdAndNombre(Long clienteId, String nombre);
+    // Buscar mascotas de un cliente por nombre
+    @Query("SELECT m FROM Mascota m WHERE m.cliente.id = :clienteId AND LOWER(m.nombre) LIKE LOWER(CONCAT('%', :nombre, '%'))")
+    List<Mascota> findByClienteIdAndNombreContainingIgnoreCase(@Param("clienteId") Integer clienteId, @Param("nombre") String nombre);
 }

@@ -1,60 +1,38 @@
 package com.example.microservicio_clinico.resolver.mutation;
 
-import com.example.microservicio_clinico.dto.BloqueHorarioInputDTO;
-import com.example.microservicio_clinico.dto.BloqueHorarioUpdateDTO;
-import com.example.microservicio_clinico.entity.BloqueHorario;
-import com.example.microservicio_clinico.entity.Doctor;
+import com.example.microservicio_clinico.dto.BloqueHorarioInput;
+import com.example.microservicio_clinico.dto.BloqueHorarioOutput;
+import com.example.microservicio_clinico.dto.BloqueHorarioUpdateInput;
 import com.example.microservicio_clinico.service.BloqueHorarioService;
 import com.netflix.graphql.dgs.DgsComponent;
 import com.netflix.graphql.dgs.DgsMutation;
 import com.netflix.graphql.dgs.InputArgument;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @DgsComponent
 @RequiredArgsConstructor
+@Slf4j
 public class BloqueHorarioMutationResolver {
     
     private final BloqueHorarioService bloqueHorarioService;
     
     @DgsMutation
-    public BloqueHorario crearBloqueHorario(@InputArgument BloqueHorarioInputDTO input) {
-        BloqueHorario bloqueHorario = new BloqueHorario();
-        bloqueHorario.setDia(input.getDia());
-        bloqueHorario.setHoraInicio(input.getHoraInicio());
-        bloqueHorario.setHoraFin(input.getHoraFin());
-        
-        // Establecer doctor
-        Doctor doctor = new Doctor();
-        doctor.setId(input.getDoctorId());
-        bloqueHorario.setDoctor(doctor);
-        
-        return bloqueHorarioService.create(bloqueHorario);
+    public BloqueHorarioOutput crearBloqueHorario(@InputArgument BloqueHorarioInput input) {
+        log.info("GraphQL Mutation: Creando bloque horario para doctor ID: {} día semana: {}", 
+                input.getDoctorId(), input.getDiasemana());
+        return bloqueHorarioService.crearBloqueHorario(input);
     }
     
     @DgsMutation
-    public BloqueHorario actualizarBloqueHorario(@InputArgument Long id, @InputArgument BloqueHorarioUpdateDTO input) {
-        BloqueHorario bloqueHorario = new BloqueHorario();
-        bloqueHorario.setDia(input.getDia());
-        bloqueHorario.setHoraInicio(input.getHoraInicio());
-        bloqueHorario.setHoraFin(input.getHoraFin());
-        
-        // Establecer doctor si se proporciona
-        if (input.getDoctorId() != null) {
-            Doctor doctor = new Doctor();
-            doctor.setId(input.getDoctorId());
-            bloqueHorario.setDoctor(doctor);
-        }
-        
-        return bloqueHorarioService.update(id, bloqueHorario);
+    public BloqueHorarioOutput actualizarBloqueHorario(@InputArgument BloqueHorarioUpdateInput input) {
+        log.info("GraphQL Mutation: Actualizando bloque horario con ID: {}", input.getId());
+        return bloqueHorarioService.actualizarBloqueHorario(input);
     }
     
     @DgsMutation
-    public Boolean eliminarBloqueHorario(@InputArgument Long id) {
-        try {
-            bloqueHorarioService.deleteById(id);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    public Boolean eliminarBloqueHorario(@InputArgument Integer id) {
+        log.info("GraphQL Mutation: Eliminando bloque horario con ID: {}", id);
+        return bloqueHorarioService.eliminarBloqueHorario(id);
     }
 }

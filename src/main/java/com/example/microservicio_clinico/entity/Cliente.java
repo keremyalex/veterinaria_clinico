@@ -1,13 +1,14 @@
 package com.example.microservicio_clinico.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import java.time.LocalDate;
+
+import java.util.List;
 
 @Entity
-@Table(name = "clientes")
+@Table(name = "cliente")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -15,28 +16,24 @@ public class Cliente {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
     
-    @Column(name = "nombre", nullable = false, length = 100)
+    @Column(nullable = false)
     private String nombre;
     
-    @Column(name = "apellidos", nullable = false, length = 100)
-    private String apellidos;
+    @Column(nullable = false)
+    private String apellido;
     
-    @Column(name = "email", nullable = false, length = 150, unique = true)
-    private String email;
+    @Column(nullable = false, unique = true)
+    private String ci;
     
-    @Column(name = "telefono", nullable = false)
+    @Column(nullable = false)
     private String telefono;
     
-    @Column(name = "fecha_nacimiento", nullable = false)
-    private LocalDate fechaNacimiento;
+    @Column(name = "fotourl")
+    private String fotourl;
     
-    public Cliente(String nombre, String apellidos, String email, String telefono, LocalDate fechaNacimiento) {
-        this.nombre = nombre;
-        this.apellidos = apellidos;
-        this.email = email;
-        this.telefono = telefono;
-        this.fechaNacimiento = fechaNacimiento;
-    }
+    // Relación uno a muchos con Mascota
+    @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Mascota> mascotas;
 }

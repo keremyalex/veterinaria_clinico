@@ -1,55 +1,37 @@
 package com.example.microservicio_clinico.resolver.mutation;
 
-import com.example.microservicio_clinico.dto.DiagnosticoInputDTO;
-import com.example.microservicio_clinico.dto.DiagnosticoUpdateDTO;
-import com.example.microservicio_clinico.entity.Cita;
-import com.example.microservicio_clinico.entity.Diagnostico;
+import com.example.microservicio_clinico.dto.DiagnosticoInput;
+import com.example.microservicio_clinico.dto.DiagnosticoOutput;
+import com.example.microservicio_clinico.dto.DiagnosticoUpdateInput;
 import com.example.microservicio_clinico.service.DiagnosticoService;
 import com.netflix.graphql.dgs.DgsComponent;
 import com.netflix.graphql.dgs.DgsMutation;
 import com.netflix.graphql.dgs.InputArgument;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @DgsComponent
 @RequiredArgsConstructor
+@Slf4j
 public class DiagnosticoMutationResolver {
     
     private final DiagnosticoService diagnosticoService;
     
     @DgsMutation
-    public Diagnostico crearDiagnostico(@InputArgument DiagnosticoInputDTO input) {
-        Diagnostico diagnostico = new Diagnostico();
-        diagnostico.setEnfermedad(input.getEnfermedad());
-        diagnostico.setDescripcion(input.getDescripcion());
-        diagnostico.setSintomas(input.getSintomas());
-        diagnostico.setMedicamentosRecetados(input.getMedicamentosRecetados());
-        
-        // Establecer cita
-        Cita cita = new Cita();
-        cita.setId(input.getCitaId());
-        diagnostico.setCita(cita);
-        
-        return diagnosticoService.create(diagnostico);
+    public DiagnosticoOutput crearDiagnostico(@InputArgument DiagnosticoInput input) {
+        log.info("GraphQL Mutation: Creando diagnóstico para cita ID: {}", input.getCitaId());
+        return diagnosticoService.crearDiagnostico(input);
     }
     
     @DgsMutation
-    public Diagnostico actualizarDiagnostico(@InputArgument Long id, @InputArgument DiagnosticoUpdateDTO input) {
-        Diagnostico diagnostico = new Diagnostico();
-        diagnostico.setEnfermedad(input.getEnfermedad());
-        diagnostico.setDescripcion(input.getDescripcion());
-        diagnostico.setSintomas(input.getSintomas());
-        diagnostico.setMedicamentosRecetados(input.getMedicamentosRecetados());
-        
-        return diagnosticoService.update(id, diagnostico);
+    public DiagnosticoOutput actualizarDiagnostico(@InputArgument DiagnosticoUpdateInput input) {
+        log.info("GraphQL Mutation: Actualizando diagnóstico con ID: {}", input.getId());
+        return diagnosticoService.actualizarDiagnostico(input);
     }
     
     @DgsMutation
-    public Boolean eliminarDiagnostico(@InputArgument Long id) {
-        try {
-            diagnosticoService.deleteById(id);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    public Boolean eliminarDiagnostico(@InputArgument Integer id) {
+        log.info("GraphQL Mutation: Eliminando diagnóstico con ID: {}", id);
+        return diagnosticoService.eliminarDiagnostico(id);
     }
 }

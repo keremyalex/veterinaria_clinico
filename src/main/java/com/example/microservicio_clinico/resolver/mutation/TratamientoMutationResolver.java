@@ -1,57 +1,37 @@
 package com.example.microservicio_clinico.resolver.mutation;
 
-import com.example.microservicio_clinico.dto.TratamientoInputDTO;
-import com.example.microservicio_clinico.dto.TratamientoUpdateDTO;
-import com.example.microservicio_clinico.entity.Diagnostico;
-import com.example.microservicio_clinico.entity.Tratamiento;
+import com.example.microservicio_clinico.dto.TratamientoInput;
+import com.example.microservicio_clinico.dto.TratamientoOutput;
+import com.example.microservicio_clinico.dto.TratamientoUpdateInput;
 import com.example.microservicio_clinico.service.TratamientoService;
 import com.netflix.graphql.dgs.DgsComponent;
 import com.netflix.graphql.dgs.DgsMutation;
 import com.netflix.graphql.dgs.InputArgument;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @DgsComponent
 @RequiredArgsConstructor
+@Slf4j
 public class TratamientoMutationResolver {
     
     private final TratamientoService tratamientoService;
     
     @DgsMutation
-    public Tratamiento crearTratamiento(@InputArgument TratamientoInputDTO input) {
-        Tratamiento tratamiento = new Tratamiento();
-        tratamiento.setMedicamento(input.getMedicamento());
-        tratamiento.setDosis(input.getDosis());
-        tratamiento.setFechaInicio(input.getFechaInicio());
-        tratamiento.setFechaFin(input.getFechaFin());
-        tratamiento.setObservaciones(input.getObservaciones());
-        
-        // Establecer diagnóstico
-        Diagnostico diagnostico = new Diagnostico();
-        diagnostico.setId(input.getDiagnosticoId());
-        tratamiento.setDiagnostico(diagnostico);
-        
-        return tratamientoService.create(tratamiento);
+    public TratamientoOutput crearTratamiento(@InputArgument TratamientoInput input) {
+        log.info("GraphQL Mutation: Creando tratamiento para diagnóstico ID: {}", input.getDiagnosticoId());
+        return tratamientoService.crearTratamiento(input);
     }
     
     @DgsMutation
-    public Tratamiento actualizarTratamiento(@InputArgument Long id, @InputArgument TratamientoUpdateDTO input) {
-        Tratamiento tratamiento = new Tratamiento();
-        tratamiento.setMedicamento(input.getMedicamento());
-        tratamiento.setDosis(input.getDosis());
-        tratamiento.setFechaInicio(input.getFechaInicio());
-        tratamiento.setFechaFin(input.getFechaFin());
-        tratamiento.setObservaciones(input.getObservaciones());
-        
-        return tratamientoService.update(id, tratamiento);
+    public TratamientoOutput actualizarTratamiento(@InputArgument TratamientoUpdateInput input) {
+        log.info("GraphQL Mutation: Actualizando tratamiento con ID: {}", input.getId());
+        return tratamientoService.actualizarTratamiento(input);
     }
     
     @DgsMutation
-    public Boolean eliminarTratamiento(@InputArgument Long id) {
-        try {
-            tratamientoService.deleteById(id);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    public Boolean eliminarTratamiento(@InputArgument Integer id) {
+        log.info("GraphQL Mutation: Eliminando tratamiento con ID: {}", id);
+        return tratamientoService.eliminarTratamiento(id);
     }
 }

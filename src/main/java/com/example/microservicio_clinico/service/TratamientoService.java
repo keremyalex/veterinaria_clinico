@@ -1,20 +1,17 @@
 package com.example.microservicio_clinico.service;
 
-import com.example.microservicio_clinico.entity.Tratamiento;
+import com.example.microservicio_clinico.dto.*;
 import com.example.microservicio_clinico.entity.Diagnostico;
-import com.example.microservicio_clinico.repository.TratamientoRepository;
+import com.example.microservicio_clinico.entity.Tratamiento;
 import com.example.microservicio_clinico.repository.DiagnosticoRepository;
-import com.example.microservicio_clinico.dto.TratamientoInputDTO;
-import com.example.microservicio_clinico.dto.TratamientoUpdateDTO;
+import com.example.microservicio_clinico.repository.TratamientoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,82 +21,154 @@ public class TratamientoService {
     
     private final TratamientoRepository tratamientoRepository;
     private final DiagnosticoRepository diagnosticoRepository;
+    private final DiagnosticoService diagnosticoService;
     
-    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-    
-    public Tratamiento create(TratamientoInputDTO input) {
-        log.info("Creando tratamiento con input: {}", input);
+    // Crear nuevo tratamiento
+    public TratamientoOutput crearTratamiento(TratamientoInput input) {
+        log.info("Creando nuevo tratamiento para diagnóstico ID: {}", input.getDiagnosticoId());
         
-        // Buscar el diagnóstico
-        Long diagnosticoId = Long.parseLong(input.getDiagnosticoId());
-        Diagnostico diagnostico = diagnosticoRepository.findById(diagnosticoId)
-            .orElseThrow(() -> new RuntimeException("Diagnóstico no encontrado con ID: " + diagnosticoId));
-        log.info("Diagnóstico encontrado para mascota: {}", diagnostico.getMascota().getNombre());
+        // Validar que el diagnóstico exista
+        Diagnostico diagnostico = diagnosticoRepository.findById(input.getDiagnosticoId())
+            .orElseThrow(() -> new RuntimeException("Diagnóstico no encontrado con ID: " + input.getDiagnosticoId()));
         
         Tratamiento tratamiento = new Tratamiento();
+        tratamiento.setNombre(input.getNombre());
         tratamiento.setDescripcion(input.getDescripcion());
-        tratamiento.setFechaInicio(LocalDateTime.parse(input.getFechaInicio(), dateTimeFormatter));
-        
-        if (input.getFechaFin() != null && !input.getFechaFin().isEmpty()) {
-            tratamiento.setFechaFin(LocalDateTime.parse(input.getFechaFin(), dateTimeFormatter));
-        }
-        
-        tratamiento.setInstrucciones(input.getInstrucciones());
-        tratamiento.setEstado(input.getEstado() != null ? input.getEstado() : "ACTIVO");
+        tratamiento.setObservaciones(input.getObservaciones());
         tratamiento.setDiagnostico(diagnostico);
         
         Tratamiento savedTratamiento = tratamientoRepository.save(tratamiento);
         log.info("Tratamiento creado exitosamente con ID: {}", savedTratamiento.getId());
         
-        return savedTratamiento;
+        return convertirAOutput(savedTratamiento);
     }
     
-    public Tratamiento update(Long id, TratamientoUpdateDTO input) {
-        log.info("Actualizando tratamiento con input: {}", input);
+    // Actualizar tratamiento
+    public TratamientoOutput actualizarTratamiento(TratamientoUpdateInput input) {
+        log.info("Actualizando tratamiento con ID: {}", input.getId());
         
-        Long id = Long.parseLong(input.getId());
-        Optional<Tratamiento> existingTratamiento = tratamientoRepository.findById(id);
+        Tratamiento tratamiento = tratamientoRepository.findById(input.getId())
+            .orElseThrow(() -> new RuntimeException("Tratamiento no encontrado con ID: " + input.getId()));
         
-        if (existingTratamiento.isEmpty()) {
-            throw new RuntimeException("Tratamiento no encontrado con ID: " + id);
-        }
-        
-        Tratamiento tratamiento = existingTratamiento.get();
-        
-        if (input.getDescripcion() != null) {
-            tratamiento.setDescripcion(input.getDescripcion());
-        }
-        
-        if (input.getFechaInicio() != null) {
-            tratamiento.setFechaInicio(LocalDateTime.parse(input.getFechaInicio(), dateTimeFormatter));
-        }
-        
-        if (input.getFechaFin() != null && !input.getFechaFin().isEmpty()) {
-            tratamiento.setFechaFin(LocalDateTime.parse(input.getFechaFin(), dateTimeFormatter));
-        }
-        
-        if (input.getInstrucciones() != null) {
-            tratamiento.setInstrucciones(input.getInstrucciones());
-        }
-        
-        if (input.getEstado() != null) {
-            tratamiento.setEstado(input.getEstado());
-        }
-        
-        if (input.getDiagnosticoId() != null) {
-            Long diagnosticoId = Long.parseLong(input.getDiagnosticoId());
-            Diagnostico diagnostico = diagnosticoRepository.findById(diagnosticoId)
-                .orElseThrow(() -> new RuntimeException("Diagnóstico no encontrado con ID: " + diagnosticoId));
+        // Actualizar diagnóstico si se proporciona
+        if (input.getDiagnosticoId() != null && !input.getDiagnosticoId().equals(tratamiento.getDiagnostico().getId())) {
+            Diagnostico diagnostico = diagnosticoRepository.findById(input.getDiagnosticoId())
+                .orElseThrow(() -> new RuntimeException("Diagnóstico no encontrado con ID: " + input.getDiagnosticoId()));
             tratamiento.setDiagnostico(diagnostico);
         }
         
-        Tratamiento updatedTratamiento = tratamientoRepository.save(tratamiento);
-        log.info("Tratamiento actualizado exitosamente: {}", updatedTratamiento.getId());
+        // Actualizar otros campos si se proporcionan
+        if (input.getNombre() != null) tratamiento.setNombre(input.getNombre());
+        if (input.getDescripcion() != null) tratamiento.setDescripcion(input.getDescripcion());
+        if (input.getObservaciones() != null) tratamiento.setObservaciones(input.getObservaciones());
         
-        return updatedTratamiento;
+        Tratamiento updatedTratamiento = tratamientoRepository.save(tratamiento);
+        log.info("Tratamiento actualizado exitosamente con ID: {}", updatedTratamiento.getId());
+        
+        return convertirAOutput(updatedTratamiento);
     }
     
-    public Boolean delete(Long id) {
+    // Obtener tratamiento por ID
+    @Transactional(readOnly = true)
+    public TratamientoOutput obtenerTratamientoPorId(Integer id) {
+        log.info("Obteniendo tratamiento por ID: {}", id);
+        
+        Tratamiento tratamiento = tratamientoRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Tratamiento no encontrado con ID: " + id));
+        
+        return convertirAOutput(tratamiento);
+    }
+    
+    // Obtener todos los tratamientos
+    @Transactional(readOnly = true)
+    public List<TratamientoOutput> obtenerTodosLosTratamientos() {
+        log.info("Obteniendo todos los tratamientos");
+        
+        return tratamientoRepository.findAll()
+            .stream()
+            .map(this::convertirAOutput)
+            .collect(Collectors.toList());
+    }
+    
+    // Obtener tratamientos por diagnóstico
+    @Transactional(readOnly = true)
+    public List<TratamientoOutput> obtenerTratamientosPorDiagnostico(Integer diagnosticoId) {
+        log.info("Obteniendo tratamientos del diagnóstico ID: {}", diagnosticoId);
+        
+        return tratamientoRepository.findByDiagnosticoId(diagnosticoId)
+            .stream()
+            .map(this::convertirAOutput)
+            .collect(Collectors.toList());
+    }
+    
+    // Obtener tratamientos por doctor
+    @Transactional(readOnly = true)
+    public List<TratamientoOutput> obtenerTratamientosPorDoctor(Integer doctorId) {
+        log.info("Obteniendo tratamientos del doctor ID: {}", doctorId);
+        
+        return tratamientoRepository.findByDoctorId(doctorId)
+            .stream()
+            .map(this::convertirAOutput)
+            .collect(Collectors.toList());
+    }
+    
+    // Obtener tratamientos por mascota
+    @Transactional(readOnly = true)
+    public List<TratamientoOutput> obtenerTratamientosPorMascota(Integer mascotaId) {
+        log.info("Obteniendo tratamientos de la mascota ID: {}", mascotaId);
+        
+        return tratamientoRepository.findByMascotaId(mascotaId)
+            .stream()
+            .map(this::convertirAOutput)
+            .collect(Collectors.toList());
+    }
+    
+    // Obtener tratamientos por cita
+    @Transactional(readOnly = true)
+    public List<TratamientoOutput> obtenerTratamientosPorCita(Integer citaId) {
+        log.info("Obteniendo tratamientos de la cita ID: {}", citaId);
+        
+        return tratamientoRepository.findByCitaId(citaId)
+            .stream()
+            .map(this::convertirAOutput)
+            .collect(Collectors.toList());
+    }
+    
+    // Buscar tratamientos por nombre
+    @Transactional(readOnly = true)
+    public List<TratamientoOutput> buscarTratamientosPorNombre(String nombre) {
+        log.info("Buscando tratamientos por nombre: {}", nombre);
+        
+        return tratamientoRepository.findByNombreContainingIgnoreCase(nombre)
+            .stream()
+            .map(this::convertirAOutput)
+            .collect(Collectors.toList());
+    }
+    
+    // Buscar tratamientos por descripción
+    @Transactional(readOnly = true)
+    public List<TratamientoOutput> buscarTratamientosPorDescripcion(String descripcion) {
+        log.info("Buscando tratamientos por descripción: {}", descripcion);
+        
+        return tratamientoRepository.findByDescripcionContainingIgnoreCase(descripcion)
+            .stream()
+            .map(this::convertirAOutput)
+            .collect(Collectors.toList());
+    }
+    
+    // Buscar tratamientos por observaciones
+    @Transactional(readOnly = true)
+    public List<TratamientoOutput> buscarTratamientosPorObservaciones(String observaciones) {
+        log.info("Buscando tratamientos por observaciones: {}", observaciones);
+        
+        return tratamientoRepository.findByObservacionesContainingIgnoreCase(observaciones)
+            .stream()
+            .map(this::convertirAOutput)
+            .collect(Collectors.toList());
+    }
+    
+    // Eliminar tratamiento
+    public boolean eliminarTratamiento(Integer id) {
         log.info("Eliminando tratamiento con ID: {}", id);
         
         if (!tratamientoRepository.existsById(id)) {
@@ -107,28 +176,22 @@ public class TratamientoService {
         }
         
         tratamientoRepository.deleteById(id);
-        log.info("Tratamiento eliminado exitosamente: {}", id);
+        log.info("Tratamiento eliminado exitosamente con ID: {}", id);
         
         return true;
     }
     
-    public List<Tratamiento> findAll() {
-        log.info("Obteniendo todos los tratamientos");
-        return tratamientoRepository.findAll();
-    }
-    
-    public Optional<Tratamiento> findById(Long id) {
-        log.info("Buscando tratamiento con ID: {}", id);
-        return tratamientoRepository.findById(id);
-    }
-    
-    public List<Tratamiento> findByDiagnosticoId(Long diagnosticoId) {
-        log.info("Buscando tratamientos por diagnóstico ID: {}", diagnosticoId);
-        return tratamientoRepository.findByDiagnosticoIdOrderByFechaInicioDesc(diagnosticoId);
-    }
-    
-    public List<Tratamiento> findByEstado(String estado) {
-        log.info("Buscando tratamientos por estado: {}", estado);
-        return tratamientoRepository.findByEstado(estado);
+    // Método privado para convertir Entity a DTO
+    private TratamientoOutput convertirAOutput(Tratamiento tratamiento) {
+        TratamientoOutput output = new TratamientoOutput();
+        output.setId(tratamiento.getId());
+        output.setNombre(tratamiento.getNombre());
+        output.setDescripcion(tratamiento.getDescripcion());
+        output.setObservaciones(tratamiento.getObservaciones());
+        
+        // Convertir diagnóstico
+        output.setDiagnostico(diagnosticoService.obtenerDiagnosticoPorId(tratamiento.getDiagnostico().getId()));
+        
+        return output;
     }
 }

@@ -19,15 +19,16 @@ public class MascotaInput {
     @Size(max = 100, message = "El nombre no puede exceder 100 caracteres")
     private String nombre;
     
-    @NotNull(message = "El sexo es obligatorio")
-    private Character sexo;
+    @NotBlank(message = "El sexo es obligatorio")
+    @Size(max = 1, message = "El sexo debe ser un solo carácter")
+    private String sexo;
     
     @NotBlank(message = "La raza es obligatoria")
     @Size(max = 100, message = "La raza no puede exceder 100 caracteres")
     private String raza;
     
     @Size(max = 255, message = "La URL de la foto no puede exceder 255 caracteres")
-    private String fotoUrl;
+    private String fotourl;
     
     @NotNull(message = "La fecha de nacimiento es obligatoria")
     private LocalDate fechanacimiento;

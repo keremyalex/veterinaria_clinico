@@ -4,9 +4,11 @@ import com.example.microservicio_clinico.dto.*;
 import com.example.microservicio_clinico.entity.Cita;
 import com.example.microservicio_clinico.entity.Doctor;
 import com.example.microservicio_clinico.entity.Mascota;
+import com.example.microservicio_clinico.entity.BloqueHorario;
 import com.example.microservicio_clinico.repository.CitaRepository;
 import com.example.microservicio_clinico.repository.DoctorRepository;
 import com.example.microservicio_clinico.repository.MascotaRepository;
+import com.example.microservicio_clinico.repository.BloqueHorarioRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,7 @@ public class CitaService {
     private final CitaRepository citaRepository;
     private final DoctorRepository doctorRepository;
     private final MascotaRepository mascotaRepository;
+    private final BloqueHorarioRepository bloqueHorarioRepository;
     private final DoctorService doctorService;
     private final MascotaService mascotaService;
     
@@ -51,18 +54,26 @@ public class CitaService {
             throw new RuntimeException("El doctor ya tiene una cita programada en esa fecha y hora");
         }
         
-        // Validar que la fecha de sesión sea en el futuro
+        // Validar que la fecha de reserva sea en el futuro
         if (input.getFechareserva().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("La fecha de sesión debe ser en el futuro");
+            throw new RuntimeException("La fecha de reserva debe ser en el futuro");
+        }
+        
+        // Validar y obtener bloque horario si se proporciona
+        BloqueHorario bloqueHorario = null;
+        if (input.getBloqueHorarioId() != null) {
+            bloqueHorario = bloqueHorarioRepository.findById(input.getBloqueHorarioId())
+                .orElseThrow(() -> new RuntimeException("Bloque horario no encontrado con ID: " + input.getBloqueHorarioId()));
         }
         
         Cita cita = new Cita();
-        cita.setFechareserva(input.getFechareserva());
+        cita.setFechacreacion(input.getFechacreacion());
         cita.setMotivo(input.getMotivo());
         cita.setFechareserva(input.getFechareserva());
         cita.setEstado(input.getEstado());
         cita.setDoctor(doctor);
         cita.setMascota(mascota);
+        cita.setBloqueHorario(bloqueHorario);
         
         Cita savedCita = citaRepository.save(cita);
         log.info("Cita creada exitosamente con ID: {}", savedCita.getId());
@@ -91,7 +102,15 @@ public class CitaService {
             cita.setMascota(mascota);
         }
         
+        // Actualizar bloque horario si se proporciona
+        if (input.getBloqueHorarioId() != null) {
+            BloqueHorario bloqueHorario = bloqueHorarioRepository.findById(input.getBloqueHorarioId())
+                .orElseThrow(() -> new RuntimeException("Bloque horario no encontrado con ID: " + input.getBloqueHorarioId()));
+            cita.setBloqueHorario(bloqueHorario);
+        }
+        
         // Actualizar otros campos si se proporcionan
+        if (input.getFechacreacion() != null) cita.setFechacreacion(input.getFechacreacion());
         if (input.getFechareserva() != null) {
             // Validar disponibilidad si se cambia la fecha
             if (!input.getFechareserva().equals(cita.getFechareserva())) {
@@ -106,7 +125,6 @@ public class CitaService {
             cita.setFechareserva(input.getFechareserva());
         }
         if (input.getMotivo() != null) cita.setMotivo(input.getMotivo());
-        if (input.getFechareserva() != null) cita.setFechareserva(input.getFechareserva());
         if (input.getEstado() != null) cita.setEstado(input.getEstado());
         
         Cita updatedCita = citaRepository.save(cita);
@@ -221,7 +239,7 @@ public class CitaService {
     private CitaOutput convertirAOutput(Cita cita) {
         CitaOutput output = new CitaOutput();
         output.setId(cita.getId());
-        output.setFechareserva(cita.getFechareserva());
+        output.setFechacreacion(cita.getFechacreacion());
         output.setMotivo(cita.getMotivo());
         output.setFechareserva(cita.getFechareserva());
         output.setEstado(cita.getEstado());
@@ -231,7 +249,16 @@ public class CitaService {
         output.setDoctor(doctorService.obtenerDoctorPorId(cita.getDoctor().getId()));
         output.setMascota(mascotaService.obtenerMascotaPorId(cita.getMascota().getId()));
         
-        // Los diagnósticos se cargarán por separado cuando sea necesario
+        // Convertir bloque horario si existe
+        if (cita.getBloqueHorario() != null) {
+            BloqueHorarioOutput bloqueOutput = new BloqueHorarioOutput();
+            bloqueOutput.setId(cita.getBloqueHorario().getId());
+            bloqueOutput.setDiasemana(cita.getBloqueHorario().getDiasemana());
+            bloqueOutput.setHorainicio(cita.getBloqueHorario().getHorainicio());
+            bloqueOutput.setHorafinal(cita.getBloqueHorario().getHorafinal());
+            bloqueOutput.setActivo(cita.getBloqueHorario().getActivo());
+            output.setBloqueHorario(bloqueOutput);
+        }
         
         return output;
     }

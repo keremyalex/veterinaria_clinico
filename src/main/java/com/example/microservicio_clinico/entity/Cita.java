@@ -41,6 +41,11 @@ public class Cita {
     @JoinColumn(name = "mascota_id", nullable = false)
     private Mascota mascota;
     
+    // Relación muchos a uno con BloqueHorario
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "bloque_horario_id")
+    private BloqueHorario bloqueHorario;
+    
     // Relación uno a muchos con Diagnostico
     @OneToMany(mappedBy = "cita", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Diagnostico> diagnosticos;

@@ -21,5 +21,5 @@ public class DoctorUpdateInput {
     private String ci;
     private String telefono;
     private String email;
-    private String fotoUrl;
+    private String fotourl;
 }

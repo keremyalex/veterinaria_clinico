@@ -13,9 +13,9 @@ public class MascotaOutput {
     
     private Integer id;
     private String nombre;
-    private Character sexo;
+    private String sexo;
     private String raza;
-    private String fotoUrl;
+    private String fotourl;
     private LocalDate fechanacimiento;
     private ClienteOutput cliente;
     private EspecieOutput especie;

@@ -29,5 +29,5 @@ public class ClienteInput {
     private String telefono;
     
     @Size(max = 255, message = "La URL de la foto no puede exceder 255 caracteres")
-    private String fotoUrl;
+    private String fotourl;
 }

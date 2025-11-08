@@ -20,5 +20,5 @@ public class ClienteUpdateInput {
     private String apellido;
     private String ci;
     private String telefono;
-    private String fotoUrl;
+    private String fotourl;
 }

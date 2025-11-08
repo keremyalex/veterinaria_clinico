@@ -15,8 +15,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class CitaInput {
     
-    @NotNull(message = "La fecha de sesión es obligatoria")
-    private LocalDateTime fechasesion;
+    @NotNull(message = "La fecha de creación es obligatoria")
+    private LocalDateTime fechacreacion;
     
     @NotBlank(message = "El motivo es obligatorio")
     @Size(max = 500, message = "El motivo no puede exceder 500 caracteres")
@@ -35,4 +35,7 @@ public class CitaInput {
     @NotNull(message = "El ID de la mascota es obligatorio")
     @Positive(message = "El ID de la mascota debe ser un número positivo")
     private Integer mascotaId;
+    
+    @Positive(message = "El ID del bloque horario debe ser un número positivo")
+    private Integer bloqueHorarioId;
 }

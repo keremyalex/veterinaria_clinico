@@ -13,12 +13,13 @@ import java.util.List;
 public class CitaOutput {
     
     private Integer id;
-    private LocalDateTime fechasesion;
+    private LocalDateTime fechacreacion;
     private String motivo;
     private LocalDateTime fechareserva;
     private Integer estado;
     private String estadoNombre; // Programada, Completada, Cancelada, etc.
     private DoctorOutput doctor;
     private MascotaOutput mascota;
+    private BloqueHorarioOutput bloqueHorario;
     private List<DiagnosticoOutput> diagnosticos;
 }

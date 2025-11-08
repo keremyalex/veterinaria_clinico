@@ -15,5 +15,5 @@ public class DoctorOutput {
     private String ci;
     private String telefono;
     private String email;
-    private String fotoUrl;
+    private String fotourl;
 }

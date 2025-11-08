@@ -17,5 +17,4 @@ public class BloqueHorarioOutput {
     private LocalTime horainicio;
     private LocalTime horafinal;
     private Integer activo;
-    private DoctorOutput doctor;
 }

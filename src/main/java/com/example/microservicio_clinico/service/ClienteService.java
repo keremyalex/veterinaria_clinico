@@ -39,7 +39,7 @@ public class ClienteService {
         cliente.setApellido(input.getApellido());
         cliente.setCi(input.getCi());
         cliente.setTelefono(input.getTelefono());
-        cliente.setFotourl(input.getFotoUrl());
+        cliente.setFotourl(input.getFotourl());
         
         Cliente savedCliente = clienteRepository.save(cliente);
         log.info("Cliente creado exitosamente con ID: {}", savedCliente.getId());
@@ -73,7 +73,7 @@ public class ClienteService {
         // Actualizar otros campos si se proporcionan
         if (input.getNombre() != null) cliente.setNombre(input.getNombre());
         if (input.getApellido() != null) cliente.setApellido(input.getApellido());
-        if (input.getFotoUrl() != null) cliente.setFotourl(input.getFotoUrl());
+        if (input.getFotourl() != null) cliente.setFotourl(input.getFotourl());
         
         Cliente updatedCliente = clienteRepository.save(cliente);
         log.info("Cliente actualizado exitosamente con ID: {}", updatedCliente.getId());
@@ -154,7 +154,7 @@ public class ClienteService {
         output.setApellido(cliente.getApellido());
         output.setCi(cliente.getCi());
         output.setTelefono(cliente.getTelefono());
-        output.setFotoUrl(cliente.getFotourl());
+        output.setFotourl(cliente.getFotourl());
         // Las mascotas se cargarán por separado cuando sea necesario
         return output;
     }

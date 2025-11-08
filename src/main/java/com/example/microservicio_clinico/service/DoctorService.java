@@ -40,7 +40,7 @@ public class DoctorService {
         doctor.setCi(input.getCi());
         doctor.setTelefono(input.getTelefono());
         doctor.setEmail(input.getEmail());
-        doctor.setFotourl(input.getFotoUrl());
+        doctor.setFotourl(input.getFotourl());
         
         Doctor savedDoctor = doctorRepository.save(doctor);
         log.info("Doctor creado exitosamente con ID: {}", savedDoctor.getId());
@@ -75,7 +75,7 @@ public class DoctorService {
         if (input.getNombre() != null) doctor.setNombre(input.getNombre());
         if (input.getApellido() != null) doctor.setApellido(input.getApellido());
         if (input.getTelefono() != null) doctor.setTelefono(input.getTelefono());
-        if (input.getFotoUrl() != null) doctor.setFotourl(input.getFotoUrl());
+        if (input.getFotourl() != null) doctor.setFotourl(input.getFotourl());
         
         Doctor updatedDoctor = doctorRepository.save(doctor);
         log.info("Doctor actualizado exitosamente con ID: {}", updatedDoctor.getId());
@@ -157,7 +157,7 @@ public class DoctorService {
         output.setCi(doctor.getCi());
         output.setTelefono(doctor.getTelefono());
         output.setEmail(doctor.getEmail());
-        output.setFotoUrl(doctor.getFotourl());
+        output.setFotourl(doctor.getFotourl());
         return output;
     }
 }

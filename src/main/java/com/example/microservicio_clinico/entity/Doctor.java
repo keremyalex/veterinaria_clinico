@@ -36,10 +36,6 @@ public class Doctor {
     @Column(name = "fotourl")
     private String fotourl;
     
-    // Relación uno a muchos con BloqueHorario
-    @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<BloqueHorario> bloquesHorarios;
-    
     // Relación uno a muchos con Cita
     @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Cita> citas;

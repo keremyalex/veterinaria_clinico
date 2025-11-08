@@ -19,8 +19,7 @@ public class BloqueHorarioMutationResolver {
     
     @DgsMutation
     public BloqueHorarioOutput crearBloqueHorario(@InputArgument BloqueHorarioInput input) {
-        log.info("GraphQL Mutation: Creando bloque horario para doctor ID: {} día semana: {}", 
-                input.getDoctorId(), input.getDiasemana());
+        log.info("GraphQL Mutation: Creando bloque horario día semana: {}", input.getDiasemana());
         return bloqueHorarioService.crearBloqueHorario(input);
     }
     

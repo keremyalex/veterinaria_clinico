@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
 @Data
@@ -18,9 +19,10 @@ public class MascotaUpdateInput {
     private Integer id;
     
     private String nombre;
-    private Character sexo;
+    @Size(max = 1, message = "El sexo debe ser un solo carácter")
+    private String sexo;
     private String raza;
-    private String fotoUrl;
+    private String fotourl;
     private LocalDate fechanacimiento;
     private Integer clienteId;
     private Integer especieId;

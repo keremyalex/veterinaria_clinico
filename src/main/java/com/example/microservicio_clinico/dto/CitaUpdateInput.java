@@ -17,10 +17,11 @@ public class CitaUpdateInput {
     @Positive(message = "El ID debe ser un número positivo")
     private Integer id;
     
-    private LocalDateTime fechasesion;
+    private LocalDateTime fechacreacion;
     private String motivo;
     private LocalDateTime fechareserva;
     private Integer estado;
     private Integer doctorId;
     private Integer mascotaId;
+    private Integer bloqueHorarioId;
 }

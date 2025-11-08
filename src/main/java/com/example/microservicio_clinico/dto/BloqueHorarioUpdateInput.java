@@ -21,5 +21,4 @@ public class BloqueHorarioUpdateInput {
     private LocalTime horainicio;
     private LocalTime horafinal;
     private Integer activo;
-    private Integer doctorId;
 }

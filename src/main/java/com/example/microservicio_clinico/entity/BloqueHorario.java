@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalTime;
+import java.util.List;
 
 @Entity
 @Table(name = "bloque_horario")
@@ -30,8 +31,7 @@ public class BloqueHorario {
     @Column(nullable = false)
     private Integer activo;
     
-    // Relación muchos a uno con Doctor
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "doctor_id", nullable = false)
-    private Doctor doctor;
+    // Relación uno a muchos con Cita
+    @OneToMany(mappedBy = "bloqueHorario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Cita> citas;
 }

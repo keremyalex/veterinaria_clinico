@@ -44,7 +44,7 @@ public class MascotaService {
         mascota.setNombre(input.getNombre());
         mascota.setSexo(input.getSexo());
         mascota.setRaza(input.getRaza());
-        mascota.setFotourl(input.getFotoUrl());
+        mascota.setFotourl(input.getFotourl());
         mascota.setFechanacimiento(input.getFechanacimiento());
         mascota.setCliente(cliente);
         mascota.setEspecie(especie);
@@ -80,7 +80,7 @@ public class MascotaService {
         if (input.getNombre() != null) mascota.setNombre(input.getNombre());
         if (input.getSexo() != null) mascota.setSexo(input.getSexo());
         if (input.getRaza() != null) mascota.setRaza(input.getRaza());
-        if (input.getFotoUrl() != null) mascota.setFotourl(input.getFotoUrl());
+        if (input.getFotourl() != null) mascota.setFotourl(input.getFotourl());
         if (input.getFechanacimiento() != null) mascota.setFechanacimiento(input.getFechanacimiento());
         
         Mascota updatedMascota = mascotaRepository.save(mascota);
@@ -157,7 +157,7 @@ public class MascotaService {
     
     // Obtener mascotas por sexo
     @Transactional(readOnly = true)
-    public List<MascotaOutput> obtenerMascotasPorSexo(Character sexo) {
+    public List<MascotaOutput> obtenerMascotasPorSexo(String sexo) {
         log.info("Obteniendo mascotas por sexo: {}", sexo);
         
         return mascotaRepository.findBySexo(sexo)
@@ -198,7 +198,7 @@ public class MascotaService {
         output.setNombre(mascota.getNombre());
         output.setSexo(mascota.getSexo());
         output.setRaza(mascota.getRaza());
-        output.setFotoUrl(mascota.getFotourl());
+        output.setFotourl(mascota.getFotourl());
         output.setFechanacimiento(mascota.getFechanacimiento());
         
         // Convertir cliente y especie

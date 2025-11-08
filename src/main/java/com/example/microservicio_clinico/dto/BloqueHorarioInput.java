@@ -30,8 +30,4 @@ public class BloqueHorarioInput {
     @Min(value = 0, message = "El estado activo debe ser 0 (inactivo) o 1 (activo)")
     @Max(value = 1, message = "El estado activo debe ser 0 (inactivo) o 1 (activo)")
     private Integer activo;
-    
-    @NotNull(message = "El ID del doctor es obligatorio")
-    @Positive(message = "El ID del doctor debe ser un número positivo")
-    private Integer doctorId;
 }

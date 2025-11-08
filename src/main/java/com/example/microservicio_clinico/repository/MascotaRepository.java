@@ -27,7 +27,7 @@ public interface MascotaRepository extends JpaRepository<Mascota, Integer> {
     List<Mascota> findByRazaContainingIgnoreCase(@Param("raza") String raza);
     
     // Buscar mascotas por sexo
-    List<Mascota> findBySexo(Character sexo);
+    List<Mascota> findBySexo(String sexo);
     
     // Buscar mascotas por rango de fechas de nacimiento
     List<Mascota> findByFechanacimientoBetween(LocalDate fechaInicio, LocalDate fechaFin);

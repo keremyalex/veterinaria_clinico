@@ -23,7 +23,7 @@ public class Mascota {
     private String nombre;
     
     @Column(nullable = false)
-    private Character sexo;
+    private String sexo;
     
     @Column(nullable = false)
     private String raza;

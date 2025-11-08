@@ -5,8 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
-import java.time.LocalTime;
 
 @Data
 @NoArgsConstructor
@@ -18,7 +18,12 @@ public class BloqueHorarioUpdateInput {
     private Integer id;
     
     private Integer diasemana;
-    private LocalTime horainicio;
-    private LocalTime horafinal;
+    
+    @Pattern(regexp = "^([01]?[0-9]|2[0-3]):[0-5][0-9]$", message = "Formato de hora inicial inválido (HH:MM)")
+    private String horainicio;
+    
+    @Pattern(regexp = "^([01]?[0-9]|2[0-3]):[0-5][0-9]$", message = "Formato de hora final inválido (HH:MM)")
+    private String horafinal;
+    
     private Integer activo;
 }

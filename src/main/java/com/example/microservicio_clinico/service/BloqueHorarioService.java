@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,20 +23,25 @@ import java.util.stream.Collectors;
 public class BloqueHorarioService {
     
     private final BloqueHorarioRepository bloqueHorarioRepository;
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
     
     // Crear nuevo bloque horario
     public BloqueHorarioOutput crearBloqueHorario(BloqueHorarioInput input) {
         log.info("Creando nuevo bloque horario para el día {}", input.getDiasemana());
         
+        // Convertir strings a LocalTime
+        LocalTime horaInicio = convertirStringALocalTime(input.getHorainicio());
+        LocalTime horaFinal = convertirStringALocalTime(input.getHorafinal());
+        
         // Validar que la hora final sea posterior a la inicial
-        if (!input.getHorafinal().isAfter(input.getHorainicio())) {
+        if (!horaFinal.isAfter(horaInicio)) {
             throw new RuntimeException("La hora final debe ser posterior a la hora inicial");
         }
         
         BloqueHorario bloqueHorario = new BloqueHorario();
         bloqueHorario.setDiasemana(input.getDiasemana());
-        bloqueHorario.setHorainicio(input.getHorainicio());
-        bloqueHorario.setHorafinal(input.getHorafinal());
+        bloqueHorario.setHorainicio(horaInicio);
+        bloqueHorario.setHorafinal(horaFinal);
         bloqueHorario.setActivo(input.getActivo());
         
         BloqueHorario savedBloque = bloqueHorarioRepository.save(bloqueHorario);
@@ -52,8 +59,8 @@ public class BloqueHorarioService {
         
         // Actualizar campos si se proporcionan
         if (input.getDiasemana() != null) bloqueHorario.setDiasemana(input.getDiasemana());
-        if (input.getHorainicio() != null) bloqueHorario.setHorainicio(input.getHorainicio());
-        if (input.getHorafinal() != null) bloqueHorario.setHorafinal(input.getHorafinal());
+        if (input.getHorainicio() != null) bloqueHorario.setHorainicio(convertirStringALocalTime(input.getHorainicio()));
+        if (input.getHorafinal() != null) bloqueHorario.setHorafinal(convertirStringALocalTime(input.getHorafinal()));
         if (input.getActivo() != null) bloqueHorario.setActivo(input.getActivo());
         
         // Validar horarios después de las actualizaciones
@@ -120,8 +127,8 @@ public class BloqueHorarioService {
         output.setId(bloqueHorario.getId());
         output.setDiasemana(bloqueHorario.getDiasemana());
         output.setDiasemanaNombre(obtenerNombreDia(bloqueHorario.getDiasemana()));
-        output.setHorainicio(bloqueHorario.getHorainicio());
-        output.setHorafinal(bloqueHorario.getHorafinal());
+        output.setHorainicio(bloqueHorario.getHorainicio().format(TIME_FORMATTER));
+        output.setHorafinal(bloqueHorario.getHorafinal().format(TIME_FORMATTER));
         output.setActivo(bloqueHorario.getActivo());
         
         return output;
@@ -139,5 +146,15 @@ public class BloqueHorarioService {
             case 7 -> "Domingo";
             default -> "Desconocido";
         };
+    }
+    
+    // Método helper para convertir String a LocalTime
+    private LocalTime convertirStringALocalTime(String horaString) {
+        try {
+            return LocalTime.parse(horaString, TIME_FORMATTER);
+        } catch (DateTimeParseException e) {
+            log.error("Error al parsear la hora: {}", horaString);
+            throw new RuntimeException("Formato de hora inválido: " + horaString + ". Use formato HH:MM");
+        }
     }
 }

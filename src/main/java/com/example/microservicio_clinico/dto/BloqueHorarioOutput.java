@@ -4,8 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalTime;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -14,7 +12,7 @@ public class BloqueHorarioOutput {
     private Integer id;
     private Integer diasemana;
     private String diasemanaNombre; // Lunes, Martes, etc.
-    private LocalTime horainicio;
-    private LocalTime horafinal;
+    private String horainicio;
+    private String horafinal;
     private Integer activo;
 }

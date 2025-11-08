@@ -254,8 +254,9 @@ public class CitaService {
             BloqueHorarioOutput bloqueOutput = new BloqueHorarioOutput();
             bloqueOutput.setId(cita.getBloqueHorario().getId());
             bloqueOutput.setDiasemana(cita.getBloqueHorario().getDiasemana());
-            bloqueOutput.setHorainicio(cita.getBloqueHorario().getHorainicio());
-            bloqueOutput.setHorafinal(cita.getBloqueHorario().getHorafinal());
+            bloqueOutput.setDiasemanaNombre(obtenerNombreDia(cita.getBloqueHorario().getDiasemana()));
+            bloqueOutput.setHorainicio(cita.getBloqueHorario().getHorainicio().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")));
+            bloqueOutput.setHorafinal(cita.getBloqueHorario().getHorafinal().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")));
             bloqueOutput.setActivo(cita.getBloqueHorario().getActivo());
             output.setBloqueHorario(bloqueOutput);
         }
@@ -271,6 +272,20 @@ public class CitaService {
             case 3 -> "Completada";
             case 4 -> "Cancelada";
             case 5 -> "No Asistió";
+            default -> "Desconocido";
+        };
+    }
+    
+    // Método helper para obtener nombre del día
+    private String obtenerNombreDia(Integer dia) {
+        return switch (dia) {
+            case 1 -> "Lunes";
+            case 2 -> "Martes";
+            case 3 -> "Miércoles";
+            case 4 -> "Jueves";
+            case 5 -> "Viernes";
+            case 6 -> "Sábado";
+            case 7 -> "Domingo";
             default -> "Desconocido";
         };
     }

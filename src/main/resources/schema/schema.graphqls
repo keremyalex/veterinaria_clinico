@@ -4,84 +4,298 @@ directive @external on FIELD_DEFINITION
 directive @requires(fields: String!) on FIELD_DEFINITION
 directive @provides(fields: String!) on FIELD_DEFINITION
 
-type Especie @key(fields: "id") {
+# Tipos principales del nuevo sistema
+type Doctor @key(fields: "id") {
     id: ID!
-    descripcion: String!
+    nombre: String!
+    apellido: String!
+    ci: String
+    telefono: String
+    email: String!
+    fotocuf: String
 }
 
 type Cliente @key(fields: "id") {
     id: ID!
     nombre: String!
     apellidos: String!
+    ci: String
+    telefono: String
     email: String!
-    telefono: String!
-    fechaNacimiento: String!
+    fotocuf: String
 }
 
 type Mascota @key(fields: "id") {
     id: ID!
     nombre: String!
-    sexo: String!
-    raza: String!
-    fechaNacimiento: String!
-    peso: Float
+    raza: String
+    color: String
+    fotocuf: String
+    observaciones: String
     cliente: Cliente!
-    especie: Especie!
 }
 
-type Horario @key(fields: "id") {
+type BloqueHorario @key(fields: "id") {
     id: ID!
     dia: String!
     horaInicio: String!
     horaFin: String!
+    doctor: Doctor!
 }
 
 type Cita @key(fields: "id") {
     id: ID!
-    fechaReservacion: String!
-    motivo: String!
-    fechaProgramada: String!
+    fechaHora: String!
+    motivo: String
+    estado: String!
     cliente: Cliente!
-    horario: Horario!
     mascota: Mascota!
+    doctor: Doctor!
 }
 
 type Diagnostico @key(fields: "id") {
     id: ID!
-    descripcion: String!
-    fechaDiagnostico: String!
-    observaciones: String
-    mascota: Mascota!
+    enfermedad: String!
+    descripcion: String
+    sintomas: String
+    medicamentosRecetados: String
+    cita: Cita!
 }
 
 type Tratamiento @key(fields: "id") {
     id: ID!
-    descripcion: String!
+    medicamento: String!
+    dosis: String!
     fechaInicio: String!
     fechaFin: String
-    instrucciones: String
-    estado: String!
+    observaciones: String
     diagnostico: Diagnostico!
 }
 
 type Vacuna @key(fields: "id") {
     id: ID!
     nombre: String!
-    descripcion: String!
-    duracionMeses: Int
-    laboratorio: String!
-    edadMinimaDias: Int
+    descripcion: String
+    enfermedadPreviene: String
+    duracionInmunidad: Int
+    edadMinima: Int
 }
 
-type MascotaVacuna @key(fields: "id") {
+type CarnetVacunacion @key(fields: "id") {
+    id: ID!
+    fechaCreacion: String!
+    observaciones: String
+    mascota: Mascota!
+}
+
+type DetalleVacunacion @key(fields: "id") {
     id: ID!
     fechaAplicacion: String!
     fechaProximaDosis: String
-    veterinario: String!
-    observaciones: String
+    numeroDosis: Int
     lote: String
-    mascota: Mascota!
+    veterinarioAplicador: String
+    observaciones: String
+    carnetVacunacion: CarnetVacunacion!
     vacuna: Vacuna!
+}
+
+# DTOs de entrada
+input DoctorInputDTO {
+    nombre: String!
+    apellido: String!
+    ci: String
+    telefono: String
+    email: String!
+    fotocuf: String
+}
+
+input ClienteInputDTO {
+    nombre: String!
+    apellidos: String!
+    ci: String
+    telefono: String
+    email: String!
+    fotocuf: String
+}
+
+input MascotaInputDTO {
+    nombre: String!
+    raza: String
+    color: String
+    fotocuf: String
+    observaciones: String
+    clienteId: ID!
+}
+
+input BloqueHorarioInputDTO {
+    dia: String!
+    horaInicio: String!
+    horaFin: String!
+    doctorId: ID!
+}
+
+input CitaInputDTO {
+    fechaHora: String!
+    motivo: String
+    estado: String
+    clienteId: ID!
+    mascotaId: ID!
+    doctorId: ID!
+}
+
+input DiagnosticoInputDTO {
+    enfermedad: String!
+    descripcion: String
+    sintomas: String
+    medicamentosRecetados: String
+    citaId: ID!
+}
+
+input VacunaInputDTO {
+    nombre: String!
+    descripcion: String
+    enfermedadPreviene: String
+    duracionInmunidad: Int
+    edadMinima: Int
+}
+
+# DTOs de actualización
+input DoctorUpdateDTO {
+    nombre: String
+    apellido: String
+    ci: String
+    telefono: String
+    email: String
+    fotocuf: String
+}
+
+input ClienteUpdateDTO {
+    nombre: String
+    apellidos: String
+    ci: String
+    telefono: String
+    email: String
+    fotocuf: String
+}
+
+input MascotaUpdateDTO {
+    nombre: String
+    raza: String
+    color: String
+    fotocuf: String
+    observaciones: String
+    clienteId: ID
+}
+
+input CitaUpdateDTO {
+    fechaHora: String
+    motivo: String
+    estado: String
+    clienteId: ID
+    mascotaId: ID
+    doctorId: ID
+}
+
+input DiagnosticoUpdateDTO {
+    enfermedad: String
+    descripcion: String
+    sintomas: String
+    medicamentosRecetados: String
+}
+
+input VacunaUpdateDTO {
+    nombre: String
+    descripcion: String
+    enfermedadPreviene: String
+    duracionInmunidad: Int
+    edadMinima: Int
+}
+
+# Queries principales
+type Query {
+    # Doctores
+    doctores: [Doctor!]!
+    doctor(id: ID!): Doctor
+    doctorPorEmail(email: String!): Doctor
+    buscarDoctoresPorNombre(nombre: String!): [Doctor!]!
+
+    # Clientes
+    clientes: [Cliente!]!
+    cliente(id: ID!): Cliente
+    clientePorEmail(email: String!): Cliente
+    buscarClientesPorNombre(nombre: String!): [Cliente!]!
+
+    # Mascotas
+    mascotas: [Mascota!]!
+    mascota(id: ID!): Mascota
+    mascotasPorCliente(clienteId: ID!): [Mascota!]!
+    buscarMascotasPorNombre(nombre: String!): [Mascota!]!
+
+    # Bloques de Horario
+    bloquesHorarios: [BloqueHorario!]!
+    bloqueHorario(id: ID!): BloqueHorario
+    bloquesHorariosPorDoctor(doctorId: ID!): [BloqueHorario!]!
+
+    # Citas
+    citas: [Cita!]!
+    cita(id: ID!): Cita
+    citasPorCliente(clienteId: ID!): [Cita!]!
+    citasPorDoctor(doctorId: ID!): [Cita!]!
+    citasPorEstado(estado: String!): [Cita!]!
+
+    # Diagnósticos
+    diagnosticos: [Diagnostico!]!
+    diagnostico(id: ID!): Diagnostico
+    diagnosticoPorCita(citaId: ID!): Diagnostico
+
+    # Vacunas
+    vacunas: [Vacuna!]!
+    vacuna(id: ID!): Vacuna
+    vacunaPorNombre(nombre: String!): Vacuna
+
+    # Carnets de Vacunación
+    carnetsVacunacion: [CarnetVacunacion!]!
+    carnetVacunacion(id: ID!): CarnetVacunacion
+    carnetVacunacionPorMascota(mascotaId: ID!): CarnetVacunacion
+
+    # Detalles de Vacunación
+    detallesVacunacion: [DetalleVacunacion!]!
+    detalleVacunacion(id: ID!): DetalleVacunacion
+    detallesVacunacionPorMascota(mascotaId: ID!): [DetalleVacunacion!]!
+}
+
+# Mutations
+type Mutation {
+    # Doctores
+    crearDoctor(input: DoctorInputDTO!): Doctor!
+    actualizarDoctor(id: ID!, input: DoctorUpdateDTO!): Doctor!
+    eliminarDoctor(id: ID!): Boolean!
+
+    # Clientes
+    crearCliente(input: ClienteInputDTO!): Cliente!
+    actualizarCliente(id: ID!, input: ClienteUpdateDTO!): Cliente!
+    eliminarCliente(id: ID!): Boolean!
+
+    # Mascotas
+    crearMascota(input: MascotaInputDTO!): Mascota!
+    actualizarMascota(id: ID!, input: MascotaUpdateDTO!): Mascota!
+    eliminarMascota(id: ID!): Boolean!
+
+    # Citas
+    crearCita(input: CitaInputDTO!): Cita!
+    actualizarCita(id: ID!, input: CitaUpdateDTO!): Cita!
+    eliminarCita(id: ID!): Boolean!
+
+    # Diagnósticos
+    crearDiagnostico(input: DiagnosticoInputDTO!): Diagnostico!
+    actualizarDiagnostico(id: ID!, input: DiagnosticoUpdateDTO!): Diagnostico!
+    eliminarDiagnostico(id: ID!): Boolean!
+
+    # Vacunas
+    crearVacuna(input: VacunaInputDTO!): Vacuna!
+    actualizarVacuna(id: ID!, input: VacunaUpdateDTO!): Vacuna!
+    eliminarVacuna(id: ID!): Boolean!
 }
 
 input EspecieInput {

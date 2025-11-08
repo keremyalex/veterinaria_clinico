@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,10 +33,22 @@ public class CitaService {
     private final DoctorService doctorService;
     private final MascotaService mascotaService;
     
+    private static final DateTimeFormatter[] DATETIME_FORMATTERS = {
+        DateTimeFormatter.ISO_LOCAL_DATE_TIME,
+        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'"),
+        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
+        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX"),
+        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+    };
+    
     // Crear nueva cita
     public CitaOutput crearCita(CitaInput input) {
         log.info("Creando nueva cita para mascota ID: {} con doctor ID: {}", 
                 input.getMascotaId(), input.getDoctorId());
+        
+        // Convertir strings a LocalDateTime
+        LocalDateTime fechaCreacion = convertirStringALocalDateTime(input.getFechacreacion());
+        LocalDateTime fechaReserva = convertirStringALocalDateTime(input.getFechareserva());
         
         // Validar que el doctor exista
         Doctor doctor = doctorRepository.findById(input.getDoctorId())
@@ -47,7 +61,7 @@ public class CitaService {
         // Validar disponibilidad del doctor en esa fecha/hora
         Long citasExistentes = citaRepository.countByDoctorAndFechareservaAndEstadoNot(
             input.getDoctorId(), 
-            input.getFechareserva()
+            fechaReserva
         );
         
         if (citasExistentes > 0) {
@@ -55,7 +69,7 @@ public class CitaService {
         }
         
         // Validar que la fecha de reserva sea en el futuro
-        if (input.getFechareserva().isBefore(LocalDateTime.now())) {
+        if (fechaReserva.isBefore(LocalDateTime.now())) {
             throw new RuntimeException("La fecha de reserva debe ser en el futuro");
         }
         
@@ -67,9 +81,9 @@ public class CitaService {
         }
         
         Cita cita = new Cita();
-        cita.setFechacreacion(input.getFechacreacion());
+        cita.setFechacreacion(fechaCreacion);
         cita.setMotivo(input.getMotivo());
-        cita.setFechareserva(input.getFechareserva());
+        cita.setFechareserva(fechaReserva);
         cita.setEstado(input.getEstado());
         cita.setDoctor(doctor);
         cita.setMascota(mascota);
@@ -110,19 +124,23 @@ public class CitaService {
         }
         
         // Actualizar otros campos si se proporcionan
-        if (input.getFechacreacion() != null) cita.setFechacreacion(input.getFechacreacion());
+        if (input.getFechacreacion() != null) {
+            LocalDateTime fechaCreacion = convertirStringALocalDateTime(input.getFechacreacion());
+            cita.setFechacreacion(fechaCreacion);
+        }
         if (input.getFechareserva() != null) {
+            LocalDateTime fechaReserva = convertirStringALocalDateTime(input.getFechareserva());
             // Validar disponibilidad si se cambia la fecha
-            if (!input.getFechareserva().equals(cita.getFechareserva())) {
+            if (!fechaReserva.equals(cita.getFechareserva())) {
                 Long citasExistentes = citaRepository.countByDoctorAndFechareservaAndEstadoNot(
                     cita.getDoctor().getId(), 
-                    input.getFechareserva()
+                    fechaReserva
                 );
                 if (citasExistentes > 0) {
                     throw new RuntimeException("El doctor ya tiene una cita programada en esa fecha y hora");
                 }
             }
-            cita.setFechareserva(input.getFechareserva());
+            cita.setFechareserva(fechaReserva);
         }
         if (input.getMotivo() != null) cita.setMotivo(input.getMotivo());
         if (input.getEstado() != null) cita.setEstado(input.getEstado());
@@ -288,5 +306,35 @@ public class CitaService {
             case 7 -> "Domingo";
             default -> "Desconocido";
         };
+    }
+    
+    // Método helper para convertir String a LocalDateTime
+    private LocalDateTime convertirStringALocalDateTime(String fechaString) {
+        if (fechaString == null || fechaString.trim().isEmpty()) {
+            throw new RuntimeException("La fecha no puede estar vacía");
+        }
+        
+        // Normalizar la fecha (agregar Z si no tiene zona horaria)
+        String fechaNormalizada = fechaString.trim();
+        if (!fechaNormalizada.endsWith("Z") && !fechaNormalizada.contains("+") && fechaNormalizada.indexOf("-", 10) == -1) {
+            fechaNormalizada += "Z";
+        }
+        
+        for (DateTimeFormatter formatter : DATETIME_FORMATTERS) {
+            try {
+                // Si termina en Z, parsear como Instant y convertir a LocalDateTime
+                if (fechaNormalizada.endsWith("Z")) {
+                    return java.time.Instant.parse(fechaNormalizada).atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
+                } else {
+                    return LocalDateTime.parse(fechaNormalizada, formatter);
+                }
+            } catch (DateTimeParseException e) {
+                // Intentar con el siguiente formatter
+            }
+        }
+        
+        log.error("Error al parsear la fecha: {}", fechaString);
+        throw new RuntimeException("Formato de fecha inválido: " + fechaString + 
+                                 ". Use formato ISO 8601: YYYY-MM-DDTHH:mm:ss[.sss][Z]");
     }
 }

@@ -22,30 +22,35 @@ public class DoctorService {
     
     // Crear nuevo doctor
     public DoctorOutput crearDoctor(DoctorInput input) {
-        log.info("Creando nuevo doctor con CI: {}", input.getCi());
-        
-        // Validar que el CI no exista
-        if (doctorRepository.findByCi(input.getCi()).isPresent()) {
-            throw new RuntimeException("Ya existe un doctor con el CI: " + input.getCi());
+        try {
+            log.info("Creando nuevo doctor con CI: {}", input.getCi());
+            
+            // Validar que el CI no exista
+            if (doctorRepository.findByCi(input.getCi()).isPresent()) {
+                throw new RuntimeException("Ya existe un doctor con el CI: " + input.getCi());
+            }
+            
+            // Validar que el email no exista
+            if (doctorRepository.findByEmail(input.getEmail()).isPresent()) {
+                throw new RuntimeException("Ya existe un doctor con el email: " + input.getEmail());
+            }
+            
+            Doctor doctor = new Doctor();
+            doctor.setNombre(input.getNombre());
+            doctor.setApellido(input.getApellido());
+            doctor.setCi(input.getCi());
+            doctor.setTelefono(input.getTelefono());
+            doctor.setEmail(input.getEmail());
+            doctor.setFotourl(input.getFotourl());
+            
+            Doctor savedDoctor = doctorRepository.save(doctor);
+            log.info("Doctor creado exitosamente con ID: {}", savedDoctor.getId());
+            
+            return convertirAOutput(savedDoctor);
+        } catch (Exception e) {
+            log.error("Error al crear doctor: {}", e.getMessage(), e);
+            throw new RuntimeException("Error al crear doctor: " + e.getMessage(), e);
         }
-        
-        // Validar que el email no exista
-        if (doctorRepository.findByEmail(input.getEmail()).isPresent()) {
-            throw new RuntimeException("Ya existe un doctor con el email: " + input.getEmail());
-        }
-        
-        Doctor doctor = new Doctor();
-        doctor.setNombre(input.getNombre());
-        doctor.setApellido(input.getApellido());
-        doctor.setCi(input.getCi());
-        doctor.setTelefono(input.getTelefono());
-        doctor.setEmail(input.getEmail());
-        doctor.setFotourl(input.getFotourl());
-        
-        Doctor savedDoctor = doctorRepository.save(doctor);
-        log.info("Doctor creado exitosamente con ID: {}", savedDoctor.getId());
-        
-        return convertirAOutput(savedDoctor);
     }
     
     // Actualizar doctor

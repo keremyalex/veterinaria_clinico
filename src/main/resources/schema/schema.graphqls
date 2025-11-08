@@ -29,6 +29,8 @@ type Mascota @key(fields: "id") {
     raza: String!
     sexo: String!
     fotourl: String
+    cliente: Cliente!
+    especie: Especie!
 }
 
 type Especie @key(fields: "id") {
@@ -36,50 +38,62 @@ type Especie @key(fields: "id") {
     descripcion: String!
 }
 
-type BloqueHorario {
+type BloqueHorario @key(fields: "id") {
     id: ID!
     diasemana: Int!
+    diasemanaNombre: String!
     horainicio: String!
     horafinal: String!
     activo: Int!
 }
 
-type Cita {
+type Cita @key(fields: "id") {
     id: ID!
     fechacreacion: DateTime!
     motivo: String!
     fechareserva: DateTime!
     estado: Int!
+    estadoNombre: String!
+    doctor: Doctor!
+    mascota: Mascota!
+    bloqueHorario: BloqueHorario
 }
 
-type Diagnostico {
+type Diagnostico @key(fields: "id") {
     id: ID!
     descripcion: String!
     fecharegistro: DateTime!
     observaciones: String!
+    cita: Cita!
+    tratamientos: [Tratamiento!]!
 }
 
-type Tratamiento {
+type Tratamiento @key(fields: "id") {
     id: ID!
     nombre: String!
     descripcion: String!
     observaciones: String!
+    diagnostico: Diagnostico!
 }
 
-type Vacuna {
+type Vacuna @key(fields: "id") {
     id: ID!
     descripcion: String!
 }
 
-type CarnetVacunacion {
+type CarnetVacunacion @key(fields: "id") {
     id: ID!
     fechaemision: DateTime!
+    mascota: Mascota!
+    detallesVacunacion: [DetalleVacunacion!]!
 }
 
-type DetalleVacunacion {
+type DetalleVacunacion @key(fields: "id") {
     id: ID!
     fechavacunacion: Date!
     proximavacunacion: Date
+    carnetVacunacion: CarnetVacunacion!
+    vacuna: Vacuna!
 }
 
 # Tipos de entrada para creación
@@ -102,7 +116,7 @@ input ClienteInput {
 
 input MascotaInput {
     nombre: String!
-    fechanacimiento: Date!
+    fechanacimiento: String!
     raza: String!
     sexo: String!
     fotourl: String
@@ -122,9 +136,9 @@ input BloqueHorarioInput {
 }
 
 input CitaInput {
-    fechacreacion: DateTime!
+    fechacreacion: String!
     motivo: String!
-    fechareserva: DateTime!
+    fechareserva: String!
     estado: Int!
     mascotaId: Int!
     doctorId: Int!
@@ -133,7 +147,7 @@ input CitaInput {
 
 input DiagnosticoInput {
     descripcion: String!
-    fecharegistro: DateTime!
+    fecharegistro: String!
     observaciones: String!
     citaId: Int!
 }
@@ -150,13 +164,13 @@ input VacunaInput {
 }
 
 input CarnetVacunacionInput {
-    fechaemision: DateTime!
+    fechaemision: String!
     mascotaId: Int!
 }
 
 input DetalleVacunacionInput {
-    fechavacunacion: Date!
-    proximavacunacion: Date
+    fechavacunacion: String!
+    proximavacunacion: String
     carnetVacunacionId: Int!
     vacunaId: Int!
 }
@@ -184,7 +198,7 @@ input ClienteUpdateInput {
 input MascotaUpdateInput {
     id: Int!
     nombre: String
-    fechanacimiento: Date
+    fechanacimiento: String
     raza: String
     sexo: String
     fotourl: String
@@ -206,16 +220,16 @@ input BloqueHorarioUpdateInput {
 
 input CitaUpdateInput {
     id: ID!
-    fechacreacion: DateTime
+    fechacreacion: String
     motivo: String
-    fechareserva: DateTime
+    fechareserva: String
     estado: Int
 }
 
 input DiagnosticoUpdateInput {
     id: ID!
     descripcion: String
-    fecharegistro: DateTime
+    fecharegistro: String
     observaciones: String
 }
 
@@ -233,13 +247,13 @@ input VacunaUpdateInput {
 
 input CarnetVacunacionUpdateInput {
     id: ID!
-    fechaemision: DateTime
+    fechaemision: String
 }
 
 input DetalleVacunacionUpdateInput {
     id: ID!
-    fechavacunacion: Date
-    proximavacunacion: Date
+    fechavacunacion: String
+    proximavacunacion: String
 }
 
 # Consultas básicas (mínimas para evitar errores)

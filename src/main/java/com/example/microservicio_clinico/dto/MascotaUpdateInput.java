@@ -5,9 +5,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
-import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
@@ -23,7 +23,10 @@ public class MascotaUpdateInput {
     private String sexo;
     private String raza;
     private String fotourl;
-    private LocalDate fechanacimiento;
+    
+    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "Formato de fecha de nacimiento inválido. Use YYYY-MM-DD")
+    private String fechanacimiento;
+    
     private Integer clienteId;
     private Integer especieId;
 }

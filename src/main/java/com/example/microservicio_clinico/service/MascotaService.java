@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,8 +27,8 @@ public class MascotaService {
     private final MascotaRepository mascotaRepository;
     private final ClienteRepository clienteRepository;
     private final EspecieRepository especieRepository;
-    private final ClienteService clienteService;
-    private final EspecieService especieService;
+    
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     
     // Crear nueva mascota
     public MascotaOutput crearMascota(MascotaInput input) {
@@ -45,7 +47,7 @@ public class MascotaService {
         mascota.setSexo(input.getSexo());
         mascota.setRaza(input.getRaza());
         mascota.setFotourl(input.getFotourl());
-        mascota.setFechanacimiento(input.getFechanacimiento());
+        mascota.setFechanacimiento(convertirStringALocalDate(input.getFechanacimiento()));
         mascota.setCliente(cliente);
         mascota.setEspecie(especie);
         
@@ -81,7 +83,7 @@ public class MascotaService {
         if (input.getSexo() != null) mascota.setSexo(input.getSexo());
         if (input.getRaza() != null) mascota.setRaza(input.getRaza());
         if (input.getFotourl() != null) mascota.setFotourl(input.getFotourl());
-        if (input.getFechanacimiento() != null) mascota.setFechanacimiento(input.getFechanacimiento());
+        if (input.getFechanacimiento() != null) mascota.setFechanacimiento(convertirStringALocalDate(input.getFechanacimiento()));
         
         Mascota updatedMascota = mascotaRepository.save(mascota);
         log.info("Mascota actualizada exitosamente con ID: {}", updatedMascota.getId());
@@ -201,12 +203,43 @@ public class MascotaService {
         output.setFotourl(mascota.getFotourl());
         output.setFechanacimiento(mascota.getFechanacimiento());
         
-        // Convertir cliente y especie
-        output.setCliente(clienteService.obtenerClientePorId(mascota.getCliente().getId()));
-        output.setEspecie(especieService.obtenerEspeciePorId(mascota.getEspecie().getId()));
+        // Convertir cliente y especie usando repositorios directamente
+        Cliente cliente = mascota.getCliente();
+        if (cliente != null) {
+            ClienteOutput clienteOutput = new ClienteOutput();
+            clienteOutput.setId(cliente.getId());
+            clienteOutput.setNombre(cliente.getNombre());
+            clienteOutput.setApellido(cliente.getApellido());
+            clienteOutput.setCi(cliente.getCi());
+            clienteOutput.setTelefono(cliente.getTelefono());
+            clienteOutput.setFotourl(cliente.getFotourl());
+            output.setCliente(clienteOutput);
+        }
+        
+        Especie especie = mascota.getEspecie();
+        if (especie != null) {
+            EspecieOutput especieOutput = new EspecieOutput();
+            especieOutput.setId(especie.getId());
+            especieOutput.setDescripcion(especie.getDescripcion());
+            output.setEspecie(especieOutput);
+        }
         
         // El carnet de vacunación se cargará por separado cuando sea necesario
         
         return output;
+    }
+    
+    // Método helper para convertir String a LocalDate
+    private LocalDate convertirStringALocalDate(String fechaString) {
+        if (fechaString == null || fechaString.trim().isEmpty()) {
+            throw new RuntimeException("La fecha no puede estar vacía");
+        }
+        
+        try {
+            return LocalDate.parse(fechaString.trim(), DATE_FORMATTER);
+        } catch (DateTimeParseException e) {
+            log.error("Error al parsear la fecha: {}", fechaString);
+            throw new RuntimeException("Formato de fecha inválido: " + fechaString + ". Use formato YYYY-MM-DD");
+        }
     }
 }

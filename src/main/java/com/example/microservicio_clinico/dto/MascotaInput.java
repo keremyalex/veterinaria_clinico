@@ -6,9 +6,9 @@ import lombok.NoArgsConstructor;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
-import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
@@ -30,8 +30,9 @@ public class MascotaInput {
     @Size(max = 255, message = "La URL de la foto no puede exceder 255 caracteres")
     private String fotourl;
     
-    @NotNull(message = "La fecha de nacimiento es obligatoria")
-    private LocalDate fechanacimiento;
+    @NotBlank(message = "La fecha de nacimiento es obligatoria")
+    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "Formato de fecha de nacimiento inválido. Use YYYY-MM-DD")
+    private String fechanacimiento;
     
     @NotNull(message = "El ID del cliente es obligatorio")
     @Positive(message = "El ID del cliente debe ser un número positivo")

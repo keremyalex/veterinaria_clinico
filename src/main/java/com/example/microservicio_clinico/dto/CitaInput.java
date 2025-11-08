@@ -6,24 +6,28 @@ import lombok.NoArgsConstructor;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
-import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class CitaInput {
     
-    @NotNull(message = "La fecha de creación es obligatoria")
-    private LocalDateTime fechacreacion;
+    @NotBlank(message = "La fecha de creación es obligatoria")
+    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{3})?Z?$", 
+             message = "Formato de fecha de creación inválido. Use ISO 8601: YYYY-MM-DDTHH:mm:ss[.sss][Z]")
+    private String fechacreacion;
     
     @NotBlank(message = "El motivo es obligatorio")
     @Size(max = 500, message = "El motivo no puede exceder 500 caracteres")
     private String motivo;
     
-    @NotNull(message = "La fecha de reserva es obligatoria")
-    private LocalDateTime fechareserva;
+    @NotBlank(message = "La fecha de reserva es obligatoria")
+    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{3})?Z?$", 
+             message = "Formato de fecha de reserva inválido. Use ISO 8601: YYYY-MM-DDTHH:mm:ss[.sss][Z]")
+    private String fechareserva;
     
     @NotNull(message = "El estado es obligatorio")
     private Integer estado;

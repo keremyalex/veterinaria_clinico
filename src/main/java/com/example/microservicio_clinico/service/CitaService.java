@@ -8,8 +8,8 @@ import com.example.microservicio_clinico.repository.CitaRepository;
 import com.example.microservicio_clinico.repository.ClienteRepository;
 import com.example.microservicio_clinico.repository.HorarioRepository;
 import com.example.microservicio_clinico.repository.MascotaRepository;
-import com.example.microservicio_clinico.dto.CitaInput;
-import com.example.microservicio_clinico.dto.CitaUpdateInput;
+import com.example.microservicio_clinico.dto.CitaInputDTO;
+import com.example.microservicio_clinico.dto.CitaUpdateDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,7 +33,7 @@ public class CitaService {
     
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     
-    public Cita create(CitaInput input) {
+    public Cita create(CitaInputDTO input) {
         log.info("Creando cita con input: {}", input);
         
         // Buscar las entidades relacionadas
@@ -71,7 +71,7 @@ public class CitaService {
         return savedCita;
     }
     
-    public Cita update(CitaUpdateInput input) {
+    public Cita update(CitaUpdateDTO input) {
         log.info("Actualizando cita con input: {}", input);
         
         Long id = Long.parseLong(input.getId());

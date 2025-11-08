@@ -4,8 +4,8 @@ import com.example.microservicio_clinico.entity.Tratamiento;
 import com.example.microservicio_clinico.entity.Diagnostico;
 import com.example.microservicio_clinico.repository.TratamientoRepository;
 import com.example.microservicio_clinico.repository.DiagnosticoRepository;
-import com.example.microservicio_clinico.dto.TratamientoInput;
-import com.example.microservicio_clinico.dto.TratamientoUpdateInput;
+import com.example.microservicio_clinico.dto.TratamientoInputDTO;
+import com.example.microservicio_clinico.dto.TratamientoUpdateDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,7 +27,7 @@ public class TratamientoService {
     
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     
-    public Tratamiento create(TratamientoInput input) {
+    public Tratamiento create(TratamientoInputDTO input) {
         log.info("Creando tratamiento con input: {}", input);
         
         // Buscar el diagnóstico
@@ -54,7 +54,7 @@ public class TratamientoService {
         return savedTratamiento;
     }
     
-    public Tratamiento update(TratamientoUpdateInput input) {
+    public Tratamiento update(Long id, TratamientoUpdateDTO input) {
         log.info("Actualizando tratamiento con input: {}", input);
         
         Long id = Long.parseLong(input.getId());

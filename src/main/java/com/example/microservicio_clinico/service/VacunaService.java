@@ -2,8 +2,8 @@ package com.example.microservicio_clinico.service;
 
 import com.example.microservicio_clinico.entity.Vacuna;
 import com.example.microservicio_clinico.repository.VacunaRepository;
-import com.example.microservicio_clinico.dto.VacunaInput;
-import com.example.microservicio_clinico.dto.VacunaUpdateInput;
+import com.example.microservicio_clinico.dto.VacunaInputDTO;
+import com.example.microservicio_clinico.dto.VacunaUpdateDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,7 @@ public class VacunaService {
     
     private final VacunaRepository vacunaRepository;
     
-    public Vacuna create(VacunaInput input) {
+    public Vacuna create(VacunaInputDTO input) {
         log.info("Creando vacuna con input: {}", input);
         
         // Verificar que no exista una vacuna con el mismo nombre
@@ -42,7 +42,7 @@ public class VacunaService {
         return savedVacuna;
     }
     
-    public Vacuna update(VacunaUpdateInput input) {
+    public Vacuna update(VacunaUpdateDTO input) {
         log.info("Actualizando vacuna con input: {}", input);
         
         Long id = Long.parseLong(input.getId());

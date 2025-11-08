@@ -6,8 +6,8 @@ import com.example.microservicio_clinico.entity.Especie;
 import com.example.microservicio_clinico.repository.MascotaRepository;
 import com.example.microservicio_clinico.repository.ClienteRepository;
 import com.example.microservicio_clinico.repository.EspecieRepository;
-import com.example.microservicio_clinico.dto.MascotaInput;
-import com.example.microservicio_clinico.dto.MascotaUpdateInput;
+import com.example.microservicio_clinico.dto.MascotaInputDTO;
+import com.example.microservicio_clinico.dto.MascotaUpdateDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -55,13 +55,13 @@ public class MascotaService {
     }
     
     @Transactional
-    public Mascota create(MascotaInput input) {
+    public Mascota create(MascotaInputDTO input) {
         try {
             log.info("Creando mascota con input: {}", input);
             
             // Validar entrada
             if (input == null) {
-                throw new RuntimeException("MascotaInput no puede ser null");
+                throw new RuntimeException("MascotaInputDTO no puede ser null");
             }
             
             // Validar campos obligatorios
@@ -127,7 +127,7 @@ public class MascotaService {
         }
     }
     
-    public Mascota update(MascotaUpdateInput input) {
+    public Mascota update(Long id, MascotaUpdateDTO input) {
         Long longId = Long.parseLong(input.getId());
         Mascota mascota = mascotaRepository.findById(longId)
             .orElseThrow(() -> new RuntimeException("Mascota no encontrada con ID: " + input.getId()));

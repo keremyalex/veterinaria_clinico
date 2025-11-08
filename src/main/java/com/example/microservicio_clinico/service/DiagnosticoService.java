@@ -4,8 +4,8 @@ import com.example.microservicio_clinico.entity.Diagnostico;
 import com.example.microservicio_clinico.entity.Mascota;
 import com.example.microservicio_clinico.repository.DiagnosticoRepository;
 import com.example.microservicio_clinico.repository.MascotaRepository;
-import com.example.microservicio_clinico.dto.DiagnosticoInput;
-import com.example.microservicio_clinico.dto.DiagnosticoUpdateInput;
+import com.example.microservicio_clinico.dto.DiagnosticoInputDTO;
+import com.example.microservicio_clinico.dto.DiagnosticoUpdateDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,7 +24,7 @@ public class DiagnosticoService {
     private final DiagnosticoRepository diagnosticoRepository;
     private final MascotaRepository mascotaRepository;
     
-    public Diagnostico create(DiagnosticoInput input) {
+    public Diagnostico create(DiagnosticoInputDTO input) {
         log.info("Creando diagnóstico con input: {}", input);
         
         // Buscar la mascota
@@ -45,7 +45,7 @@ public class DiagnosticoService {
         return savedDiagnostico;
     }
     
-    public Diagnostico update(DiagnosticoUpdateInput input) {
+    public Diagnostico update(Long id, DiagnosticoUpdateDTO input) {
         log.info("Actualizando diagnóstico con input: {}", input);
         
         Long id = Long.parseLong(input.getId());

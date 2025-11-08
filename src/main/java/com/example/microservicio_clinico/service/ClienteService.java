@@ -2,8 +2,8 @@ package com.example.microservicio_clinico.service;
 
 import com.example.microservicio_clinico.entity.Cliente;
 import com.example.microservicio_clinico.repository.ClienteRepository;
-import com.example.microservicio_clinico.dto.ClienteInput;
-import com.example.microservicio_clinico.dto.ClienteUpdateInput;
+import com.example.microservicio_clinico.dto.ClienteInputDTO;
+import com.example.microservicio_clinico.dto.ClienteUpdateDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,7 +38,7 @@ public class ClienteService {
                 searchTerm, searchTerm);
     }
     
-    public Cliente create(ClienteInput input) {
+    public Cliente create(ClienteInputDTO input) {
         if (clienteRepository.existsByEmail(input.getEmail())) {
             throw new RuntimeException("Ya existe un cliente con el email: " + input.getEmail());
         }
@@ -56,7 +56,7 @@ public class ClienteService {
         return clienteRepository.save(cliente);
     }
     
-    public Cliente update(ClienteUpdateInput input) {
+    public Cliente update(ClienteUpdateDTO input) {
         Long longId = Long.parseLong(input.getId());
         Cliente cliente = clienteRepository.findById(longId)
             .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + input.getId()));

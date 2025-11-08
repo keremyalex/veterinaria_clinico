@@ -24,20 +24,26 @@ public class Cita {
     @Column(nullable = false)
     private String motivo;
     
-    @Column(name = "fecha_programada", nullable = false)
+    @Column(name = "fecha_programada", nullable = false) 
     private LocalDateTime fechaProgramada;
     
-    // Relación ManyToOne con Cliente (Un cliente puede tener muchas citas)
+    @Column(name = "estado", length = 50)
+    private String estado; // PROGRAMADA, EN_CURSO, FINALIZADA, CANCELADA
+    
+    @Column(name = "observaciones", length = 1000)
+    private String observaciones;
+    
+    // Relación ManyToOne con Cliente
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "cliente_id", nullable = false)
     private Cliente cliente;
     
-    // Relación ManyToOne con Horario (Un horario puede tener muchas citas)
+    // Relación ManyToOne con Doctor
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "horario_id", nullable = false)
-    private Horario horario;
+    @JoinColumn(name = "doctor_id", nullable = false)
+    private Doctor doctor;
     
-    // Relación ManyToOne con Mascota (Una mascota puede tener muchas citas)
+    // Relación ManyToOne con Mascota
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "mascota_id", nullable = false)
     private Mascota mascota;

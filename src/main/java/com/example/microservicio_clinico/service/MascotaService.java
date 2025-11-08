@@ -2,10 +2,8 @@ package com.example.microservicio_clinico.service;
 
 import com.example.microservicio_clinico.entity.Mascota;
 import com.example.microservicio_clinico.entity.Cliente;
-import com.example.microservicio_clinico.entity.Especie;
 import com.example.microservicio_clinico.repository.MascotaRepository;
 import com.example.microservicio_clinico.repository.ClienteRepository;
-import com.example.microservicio_clinico.repository.EspecieRepository;
 import com.example.microservicio_clinico.dto.MascotaInputDTO;
 import com.example.microservicio_clinico.dto.MascotaUpdateDTO;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +25,6 @@ public class MascotaService {
     
     private final MascotaRepository mascotaRepository;
     private final ClienteRepository clienteRepository;
-    private final EspecieRepository especieRepository;
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     
     public List<Mascota> findAll() {
@@ -42,12 +39,12 @@ public class MascotaService {
         return mascotaRepository.findByClienteId(clienteId);
     }
     
-    public List<Mascota> findByEspecieId(Long especieId) {
-        return mascotaRepository.findByEspecieId(especieId);
+    public List<Mascota> findByRaza(String raza) {
+        return mascotaRepository.findByRazaContainingIgnoreCase(raza);
     }
     
-    public List<Mascota> searchByNombreOrRaza(String searchTerm) {
-        return mascotaRepository.searchByNombreOrRaza(searchTerm);
+    public List<Mascota> searchByNombreOrRazaOrColor(String searchTerm) {
+        return mascotaRepository.searchByNombreOrRazaOrColor(searchTerm);
     }
     
     public List<Mascota> findBySexo(String sexo) {
@@ -77,36 +74,24 @@ public class MascotaService {
                 throw new RuntimeException("El ID del cliente es obligatorio");
             }
             
-            if (input.getEspecieId() == null) {
-                throw new RuntimeException("El ID de la especie es obligatorio");
-            }
-            
             // Buscar cliente
-            Long clienteId = Long.parseLong(input.getClienteId());
-            log.info("Buscando cliente con ID: {}", clienteId);
-            Cliente cliente = clienteRepository.findById(clienteId)
+            Cliente cliente = clienteRepository.findById(input.getClienteId())
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + input.getClienteId()));
             log.info("Cliente encontrado: {}", cliente.getNombre());
             
-            // Buscar especie
-            Long especieId = Long.parseLong(input.getEspecieId());
-            log.info("Buscando especie con ID: {}", especieId);
-            Especie especie = especieRepository.findById(especieId)
-                .orElseThrow(() -> new RuntimeException("Especie no encontrada con ID: " + input.getEspecieId()));
-            log.info("Especie encontrada: {}", especie.getDescripcion());
+            LocalDate fechaNacimiento = input.getFechaNacimiento();
+            BigDecimal peso = input.getPeso();
             
-            LocalDate fechaNacimiento = LocalDate.parse(input.getFechaNacimiento(), dateFormatter);
-            BigDecimal peso = input.getPeso() != null ? BigDecimal.valueOf(input.getPeso()) : null;
-            
-            Mascota mascota = new Mascota(
-                    input.getNombre(),
-                    input.getSexo(),
-                    input.getRaza(),
-                    fechaNacimiento,
-                    peso,
-                    cliente,
-                    especie
-            );
+            Mascota mascota = new Mascota();
+            mascota.setNombre(input.getNombre());
+            mascota.setSexo(input.getSexo());
+            mascota.setRaza(input.getRaza());
+            mascota.setFechaNacimiento(fechaNacimiento);
+            mascota.setPeso(peso);
+            mascota.setColor(input.getColor());
+            mascota.setFotourl(input.getFotourl());
+            mascota.setObservaciones(input.getObservaciones());
+            mascota.setCliente(cliente);
             
             Mascota savedMascota = mascotaRepository.save(mascota);
             
@@ -116,12 +101,9 @@ public class MascotaService {
             
             log.info("Mascota creada exitosamente con ID: {}", savedMascota.getId());
             log.info("Cliente asociado: {}", savedMascota.getCliente().getNombre());
-            log.info("Especie asociada: {}", savedMascota.getEspecie().getDescripcion());
             
             return savedMascota;
             
-        } catch (NumberFormatException e) {
-            throw new RuntimeException("ID de cliente o especie inválido: " + e.getMessage());
         } catch (Exception e) {
             throw new RuntimeException("Error al crear mascota: " + e.getMessage(), e);
         }

@@ -31,6 +31,6 @@ public class Doctor {
     @Column(unique = true, nullable = false, length = 100)
     private String email;
 
-    @Column(name = "foto_cuf", length = 500)
-    private String fotocuf;
+    @Column(name = "foto_url", length = 500)
+    private String fotourl;
 }

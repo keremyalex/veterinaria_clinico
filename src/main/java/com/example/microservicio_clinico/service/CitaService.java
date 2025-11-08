@@ -2,11 +2,11 @@ package com.example.microservicio_clinico.service;
 
 import com.example.microservicio_clinico.entity.Cita;
 import com.example.microservicio_clinico.entity.Cliente;
-import com.example.microservicio_clinico.entity.Horario;
+import com.example.microservicio_clinico.entity.Doctor;
 import com.example.microservicio_clinico.entity.Mascota;
 import com.example.microservicio_clinico.repository.CitaRepository;
 import com.example.microservicio_clinico.repository.ClienteRepository;
-import com.example.microservicio_clinico.repository.HorarioRepository;
+import com.example.microservicio_clinico.repository.DoctorRepository;
 import com.example.microservicio_clinico.repository.MascotaRepository;
 import com.example.microservicio_clinico.dto.CitaInputDTO;
 import com.example.microservicio_clinico.dto.CitaUpdateDTO;
@@ -28,7 +28,7 @@ public class CitaService {
     
     private final CitaRepository citaRepository;
     private final ClienteRepository clienteRepository;
-    private final HorarioRepository horarioRepository;
+    private final DoctorRepository doctorRepository;
     private final MascotaRepository mascotaRepository;
     
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -37,32 +37,31 @@ public class CitaService {
         log.info("Creando cita con input: {}", input);
         
         // Buscar las entidades relacionadas
-        Long clienteId = Long.parseLong(input.getClienteId());
-        Cliente cliente = clienteRepository.findById(clienteId)
-            .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + clienteId));
+        Cliente cliente = clienteRepository.findById(input.getClienteId())
+            .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + input.getClienteId()));
         log.info("Cliente encontrado: {}", cliente.getNombre());
         
-        Long horarioId = Long.parseLong(input.getHorarioId());
-        Horario horario = horarioRepository.findById(horarioId)
-            .orElseThrow(() -> new RuntimeException("Horario no encontrado con ID: " + horarioId));
-        log.info("Horario encontrado: {} de {} a {}", horario.getDia(), horario.getHoraInicio(), horario.getHoraFin());
+        Doctor doctor = doctorRepository.findById(input.getDoctorId())
+            .orElseThrow(() -> new RuntimeException("Doctor no encontrado con ID: " + input.getDoctorId()));
+        log.info("Doctor encontrado: {} {}", doctor.getNombre(), doctor.getApellido());
         
-        Long mascotaId = Long.parseLong(input.getMascotaId());
-        Mascota mascota = mascotaRepository.findById(mascotaId)
-            .orElseThrow(() -> new RuntimeException("Mascota no encontrada con ID: " + mascotaId));
+        Mascota mascota = mascotaRepository.findById(input.getMascotaId())
+            .orElseThrow(() -> new RuntimeException("Mascota no encontrada con ID: " + input.getMascotaId()));
         log.info("Mascota encontrada: {}", mascota.getNombre());
         
         // Validar que la mascota pertenece al cliente
-        if (!mascota.getCliente().getId().equals(clienteId)) {
+        if (!mascota.getCliente().getId().equals(input.getClienteId())) {
             throw new RuntimeException("La mascota no pertenece al cliente especificado");
         }
         
         Cita cita = new Cita();
         cita.setMotivo(input.getMotivo());
-        cita.setFechaProgramada(LocalDateTime.parse(input.getFechaProgramada(), dateTimeFormatter));
+        cita.setFechaProgramada(input.getFechaProgramada());
         cita.setFechaReservacion(LocalDateTime.now());
+        cita.setEstado(input.getEstado() != null ? input.getEstado() : "PROGRAMADA");
+        cita.setObservaciones(input.getObservaciones());
         cita.setCliente(cliente);
-        cita.setHorario(horario);
+        cita.setDoctor(doctor);
         cita.setMascota(mascota);
         
         Cita savedCita = citaRepository.save(cita);
@@ -71,10 +70,9 @@ public class CitaService {
         return savedCita;
     }
     
-    public Cita update(CitaUpdateDTO input) {
-        log.info("Actualizando cita con input: {}", input);
+    public Cita update(Long id, CitaUpdateDTO input) {
+        log.info("Actualizando cita con ID: {}, input: {}", id, input);
         
-        Long id = Long.parseLong(input.getId());
         Optional<Cita> existingCita = citaRepository.findById(id);
         
         if (existingCita.isEmpty()) {
@@ -85,23 +83,20 @@ public class CitaService {
         
         // Actualizar las entidades relacionadas si se proporcionan
         if (input.getClienteId() != null) {
-            Long clienteId = Long.parseLong(input.getClienteId());
-            Cliente cliente = clienteRepository.findById(clienteId)
-                .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + clienteId));
+            Cliente cliente = clienteRepository.findById(input.getClienteId())
+                .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + input.getClienteId()));
             cita.setCliente(cliente);
         }
         
-        if (input.getHorarioId() != null) {
-            Long horarioId = Long.parseLong(input.getHorarioId());
-            Horario horario = horarioRepository.findById(horarioId)
-                .orElseThrow(() -> new RuntimeException("Horario no encontrado con ID: " + horarioId));
-            cita.setHorario(horario);
+        if (input.getDoctorId() != null) {
+            Doctor doctor = doctorRepository.findById(input.getDoctorId())
+                .orElseThrow(() -> new RuntimeException("Doctor no encontrado con ID: " + input.getDoctorId()));
+            cita.setDoctor(doctor);
         }
         
         if (input.getMascotaId() != null) {
-            Long mascotaId = Long.parseLong(input.getMascotaId());
-            Mascota mascota = mascotaRepository.findById(mascotaId)
-                .orElseThrow(() -> new RuntimeException("Mascota no encontrada con ID: " + mascotaId));
+            Mascota mascota = mascotaRepository.findById(input.getMascotaId())
+                .orElseThrow(() -> new RuntimeException("Mascota no encontrada con ID: " + input.getMascotaId()));
             cita.setMascota(mascota);
         }
         
@@ -110,7 +105,15 @@ public class CitaService {
         }
         
         if (input.getFechaProgramada() != null) {
-            cita.setFechaProgramada(LocalDateTime.parse(input.getFechaProgramada(), dateTimeFormatter));
+            cita.setFechaProgramada(input.getFechaProgramada());
+        }
+        
+        if (input.getEstado() != null) {
+            cita.setEstado(input.getEstado());
+        }
+        
+        if (input.getObservaciones() != null) {
+            cita.setObservaciones(input.getObservaciones());
         }
         
         Cita updatedCita = citaRepository.save(cita);

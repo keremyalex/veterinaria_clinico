@@ -49,9 +49,9 @@ type BloqueHorario @key(fields: "id") {
 
 type Cita @key(fields: "id") {
     id: ID!
-    fechacreacion: DateTime!
+    fechacreacion: String!
     motivo: String!
-    fechareserva: DateTime!
+    fechareserva: String!
     estado: Int!
     estadoNombre: String!
     doctor: Doctor!
@@ -62,7 +62,7 @@ type Cita @key(fields: "id") {
 type Diagnostico @key(fields: "id") {
     id: ID!
     descripcion: String!
-    fecharegistro: DateTime!
+    fecharegistro: String!
     observaciones: String!
     cita: Cita!
     tratamientos: [Tratamiento!]!
@@ -83,15 +83,15 @@ type Vacuna @key(fields: "id") {
 
 type CarnetVacunacion @key(fields: "id") {
     id: ID!
-    fechaemision: DateTime!
+    fechaemision: String!
     mascota: Mascota!
     detallesVacunacion: [DetalleVacunacion!]!
 }
 
 type DetalleVacunacion @key(fields: "id") {
     id: ID!
-    fechavacunacion: Date!
-    proximavacunacion: Date
+    fechavacunacion: String!
+    proximavacunacion: String
     carnetVacunacion: CarnetVacunacion!
     vacuna: Vacuna!
 }

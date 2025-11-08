@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,6 +31,8 @@ public class DetalleVacunacionService {
     private final CarnetVacunacionService carnetVacunacionService;
     private final VacunaService vacunaService;
     
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    
     // Crear nuevo detalle de vacunación
     public DetalleVacunacionOutput crearDetalleVacunacion(DetalleVacunacionInput input) {
         log.info("Creando nuevo detalle de vacunación para carnet ID: {} y vacuna ID: {}", 
@@ -42,20 +46,24 @@ public class DetalleVacunacionService {
         Vacuna vacuna = vacunaRepository.findById(input.getVacunaId())
             .orElseThrow(() -> new RuntimeException("Vacuna no encontrada con ID: " + input.getVacunaId()));
         
+        // Convertir fechas de string a LocalDate
+        LocalDate fechaVacunacion = convertirStringALocalDate(input.getFechavacunacion());
+        LocalDate proximaVacunacion = input.getProximavacunacion() != null ? 
+            convertirStringALocalDate(input.getProximavacunacion()) : null;
+        
         // Validar que la fecha de vacunación no sea futura
-        if (input.getFechavacunacion().isAfter(LocalDate.now())) {
+        if (fechaVacunacion.isAfter(LocalDate.now())) {
             throw new RuntimeException("La fecha de vacunación no puede ser en el futuro");
         }
         
         // Validar que la próxima vacunación sea posterior a la fecha de vacunación
-        if (input.getProximavacunacion() != null && 
-            input.getProximavacunacion().isBefore(input.getFechavacunacion())) {
+        if (proximaVacunacion != null && proximaVacunacion.isBefore(fechaVacunacion)) {
             throw new RuntimeException("La fecha de próxima vacunación debe ser posterior a la fecha de vacunación");
         }
         
         DetalleVacunacion detalle = new DetalleVacunacion();
-        detalle.setFechavacunacion(input.getFechavacunacion());
-        detalle.setProximavacunacion(input.getProximavacunacion());
+        detalle.setFechavacunacion(fechaVacunacion);
+        detalle.setProximavacunacion(proximaVacunacion);
         detalle.setCarnetVacunacion(carnet);
         detalle.setVacuna(vacuna);
         
@@ -89,17 +97,19 @@ public class DetalleVacunacionService {
         
         // Actualizar fechas si se proporcionan
         if (input.getFechavacunacion() != null) {
-            if (input.getFechavacunacion().isAfter(LocalDate.now())) {
+            LocalDate nuevaFechaVacunacion = convertirStringALocalDate(input.getFechavacunacion());
+            if (nuevaFechaVacunacion.isAfter(LocalDate.now())) {
                 throw new RuntimeException("La fecha de vacunación no puede ser en el futuro");
             }
-            detalle.setFechavacunacion(input.getFechavacunacion());
+            detalle.setFechavacunacion(nuevaFechaVacunacion);
         }
         
         if (input.getProximavacunacion() != null) {
-            if (input.getProximavacunacion().isBefore(detalle.getFechavacunacion())) {
+            LocalDate nuevaProximaVacunacion = convertirStringALocalDate(input.getProximavacunacion());
+            if (nuevaProximaVacunacion.isBefore(detalle.getFechavacunacion())) {
                 throw new RuntimeException("La fecha de próxima vacunación debe ser posterior a la fecha de vacunación");
             }
-            detalle.setProximavacunacion(input.getProximavacunacion());
+            detalle.setProximavacunacion(nuevaProximaVacunacion);
         }
         
         DetalleVacunacion updatedDetalle = detalleVacunacionRepository.save(detalle);
@@ -238,13 +248,27 @@ public class DetalleVacunacionService {
     private DetalleVacunacionOutput convertirAOutput(DetalleVacunacion detalle) {
         DetalleVacunacionOutput output = new DetalleVacunacionOutput();
         output.setId(detalle.getId());
-        output.setFechavacunacion(detalle.getFechavacunacion());
-        output.setProximavacunacion(detalle.getProximavacunacion());
+        output.setFechavacunacion(convertirLocalDateAString(detalle.getFechavacunacion()));
+        output.setProximavacunacion(convertirLocalDateAString(detalle.getProximavacunacion()));
         
         // Convertir carnet y vacuna
         output.setCarnetVacunacion(carnetVacunacionService.obtenerCarnetVacunacionPorId(detalle.getCarnetVacunacion().getId()));
         output.setVacuna(vacunaService.obtenerVacunaPorId(detalle.getVacuna().getId()));
         
         return output;
+    }
+    
+    // Método helper para convertir String a LocalDate
+    private LocalDate convertirStringALocalDate(String fechaStr) {
+        try {
+            return LocalDate.parse(fechaStr, DATE_FORMATTER);
+        } catch (DateTimeParseException e) {
+            throw new RuntimeException("Formato de fecha inválido. Use yyyy-MM-dd. Valor recibido: " + fechaStr, e);
+        }
+    }
+    
+    // Método helper para convertir LocalDate a String
+    private String convertirLocalDateAString(LocalDate fecha) {
+        return fecha != null ? fecha.format(DATE_FORMATTER) : null;
     }
 }

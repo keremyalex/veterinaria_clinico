@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
-import java.time.LocalDateTime;
+import jakarta.validation.constraints.Pattern;
 
 @Data
 @NoArgsConstructor
@@ -23,8 +23,10 @@ public class DiagnosticoInput {
     @Size(max = 2000, message = "Las observaciones no pueden exceder 2000 caracteres")
     private String observaciones;
     
-    @NotNull(message = "La fecha de registro es obligatoria")
-    private LocalDateTime fecharegistro;
+    @NotBlank(message = "La fecha de registro es obligatoria")
+    @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}(T\\d{2}:\\d{2}:\\d{2})?", 
+             message = "La fecha debe tener formato YYYY-MM-DD o YYYY-MM-DDTHH:mm:ss")
+    private String fecharegistro;
     
     @NotNull(message = "El ID de la cita es obligatorio")
     @Positive(message = "El ID de la cita debe ser un número positivo")

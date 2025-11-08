@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -13,9 +12,9 @@ import java.util.List;
 public class CitaOutput {
     
     private Integer id;
-    private LocalDateTime fechacreacion;
+    private String fechacreacion;
     private String motivo;
-    private LocalDateTime fechareserva;
+    private String fechareserva;
     private Integer estado;
     private String estadoNombre; // Programada, Completada, Cancelada, etc.
     private DoctorOutput doctor;

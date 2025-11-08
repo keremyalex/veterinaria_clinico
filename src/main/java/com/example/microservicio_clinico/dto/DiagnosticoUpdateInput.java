@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import java.time.LocalDateTime;
+import jakarta.validation.constraints.Pattern;
 
 @Data
 @NoArgsConstructor
@@ -19,6 +19,9 @@ public class DiagnosticoUpdateInput {
     
     private String descripcion;
     private String observaciones;
-    private LocalDateTime fecharegistro;
+    
+    @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}(T\\d{2}:\\d{2}:\\d{2})?", 
+             message = "La fecha debe tener formato YYYY-MM-DD o YYYY-MM-DDTHH:mm:ss")
+    private String fecharegistro;
     private Integer citaId;
 }

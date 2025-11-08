@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import java.time.LocalDateTime;
+import jakarta.validation.constraints.Pattern;
 
 @Data
 @NoArgsConstructor
@@ -17,6 +17,8 @@ public class CarnetVacunacionUpdateInput {
     @Positive(message = "El ID debe ser un número positivo")
     private Integer id;
     
-    private LocalDateTime fechaemision;
+    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$", message = "La fecha debe tener formato yyyy-MM-ddTHH:mm:ss")
+    private String fechaemision;
+    
     private Integer mascotaId;
 }

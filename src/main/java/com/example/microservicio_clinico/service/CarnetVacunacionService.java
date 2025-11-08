@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -24,6 +26,8 @@ public class CarnetVacunacionService {
     private final CarnetVacunacionRepository carnetVacunacionRepository;
     private final MascotaRepository mascotaRepository;
     private final MascotaService mascotaService;
+    
+    private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
     
     // Crear nuevo carnet de vacunación
     public CarnetVacunacionOutput crearCarnetVacunacion(CarnetVacunacionInput input) {
@@ -39,7 +43,7 @@ public class CarnetVacunacionService {
         }
         
         CarnetVacunacion carnet = new CarnetVacunacion();
-        carnet.setFechaemision(input.getFechaemision());
+        carnet.setFechaemision(convertirStringALocalDateTime(input.getFechaemision()));
         carnet.setMascota(mascota);
         
         CarnetVacunacion savedCarnet = carnetVacunacionRepository.save(carnet);
@@ -63,7 +67,7 @@ public class CarnetVacunacionService {
         }
         
         // Actualizar fecha de emisión si se proporciona
-        if (input.getFechaemision() != null) carnet.setFechaemision(input.getFechaemision());
+        if (input.getFechaemision() != null) carnet.setFechaemision(convertirStringALocalDateTime(input.getFechaemision()));
         
         CarnetVacunacion updatedCarnet = carnetVacunacionRepository.save(carnet);
         log.info("Carnet de vacunación actualizado exitosamente con ID: {}", updatedCarnet.getId());
@@ -161,7 +165,7 @@ public class CarnetVacunacionService {
     private CarnetVacunacionOutput convertirAOutput(CarnetVacunacion carnet) {
         CarnetVacunacionOutput output = new CarnetVacunacionOutput();
         output.setId(carnet.getId());
-        output.setFechaemision(carnet.getFechaemision());
+        output.setFechaemision(convertirLocalDateTimeAString(carnet.getFechaemision()));
         
         // Convertir mascota
         output.setMascota(mascotaService.obtenerMascotaPorId(carnet.getMascota().getId()));
@@ -169,5 +173,19 @@ public class CarnetVacunacionService {
         // Los detalles de vacunación se cargarán por separado cuando sea necesario
         
         return output;
+    }
+    
+    // Método helper para convertir String a LocalDateTime
+    private LocalDateTime convertirStringALocalDateTime(String fechaStr) {
+        try {
+            return LocalDateTime.parse(fechaStr, DATETIME_FORMATTER);
+        } catch (DateTimeParseException e) {
+            throw new RuntimeException("Formato de fecha inválido. Use yyyy-MM-ddTHH:mm:ss. Valor recibido: " + fechaStr, e);
+        }
+    }
+    
+    // Método helper para convertir LocalDateTime a String
+    private String convertirLocalDateTimeAString(LocalDateTime fechaDateTime) {
+        return fechaDateTime != null ? fechaDateTime.format(DATETIME_FORMATTER) : null;
     }
 }

@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,7 +42,7 @@ public class DiagnosticoService {
         Diagnostico diagnostico = new Diagnostico();
         diagnostico.setDescripcion(input.getDescripcion());
         diagnostico.setObservaciones(input.getObservaciones());
-        diagnostico.setFecharegistro(input.getFecharegistro());
+        diagnostico.setFecharegistro(convertirStringALocalDateTime(input.getFecharegistro()));
         diagnostico.setCita(cita);
         
         Diagnostico savedDiagnostico = diagnosticoRepository.save(diagnostico);
@@ -66,7 +68,9 @@ public class DiagnosticoService {
         // Actualizar otros campos si se proporcionan
         if (input.getDescripcion() != null) diagnostico.setDescripcion(input.getDescripcion());
         if (input.getObservaciones() != null) diagnostico.setObservaciones(input.getObservaciones());
-        if (input.getFecharegistro() != null) diagnostico.setFecharegistro(input.getFecharegistro());
+        if (input.getFecharegistro() != null) {
+            diagnostico.setFecharegistro(convertirStringALocalDateTime(input.getFecharegistro()));
+        }
         
         Diagnostico updatedDiagnostico = diagnosticoRepository.save(diagnostico);
         log.info("Diagnóstico actualizado exitosamente con ID: {}", updatedDiagnostico.getId());
@@ -182,7 +186,7 @@ public class DiagnosticoService {
         output.setId(diagnostico.getId());
         output.setDescripcion(diagnostico.getDescripcion());
         output.setObservaciones(diagnostico.getObservaciones());
-        output.setFecharegistro(diagnostico.getFecharegistro());
+        output.setFecharegistro(convertirLocalDateTimeAString(diagnostico.getFecharegistro()));
         
         // Convertir cita
         output.setCita(citaService.obtenerCitaPorId(diagnostico.getCita().getId()));
@@ -190,5 +194,44 @@ public class DiagnosticoService {
         // Los tratamientos se cargarán por separado cuando sea necesario
         
         return output;
+    }
+    
+    // Método helper para convertir LocalDateTime a String
+    private String convertirLocalDateTimeAString(LocalDateTime fecha) {
+        if (fecha == null) {
+            return null;
+        }
+        return fecha.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+    }
+    
+    // Método helper para convertir String a LocalDateTime
+    private LocalDateTime convertirStringALocalDateTime(String fechaString) {
+        if (fechaString == null || fechaString.trim().isEmpty()) {
+            throw new RuntimeException("La fecha no puede estar vacía");
+        }
+        
+        String fechaNormalizada = fechaString.trim();
+        
+        try {
+            // Si es solo una fecha (YYYY-MM-DD), agregar tiempo por defecto
+            if (fechaNormalizada.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                fechaNormalizada += "T00:00:00";
+                return LocalDateTime.parse(fechaNormalizada, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            }
+            
+            // Si ya tiene tiempo, intentar parsear directamente
+            if (fechaNormalizada.contains("T")) {
+                return LocalDateTime.parse(fechaNormalizada, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            }
+            
+        } catch (DateTimeParseException e) {
+            log.error("Error al parsear la fecha: {}", fechaString);
+            throw new RuntimeException("Formato de fecha inválido: " + fechaString + 
+                                     ". Use formato YYYY-MM-DD o YYYY-MM-DDTHH:mm:ss");
+        }
+        
+        log.error("Error al parsear la fecha después de todos los intentos: {}", fechaString);
+        throw new RuntimeException("Formato de fecha inválido: " + fechaString + 
+                                 ". Use formato YYYY-MM-DD o YYYY-MM-DDTHH:mm:ss");
     }
 }

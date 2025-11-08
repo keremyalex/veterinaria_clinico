@@ -89,7 +89,7 @@ input DoctorInput {
     ci: String!
     telefono: String!
     email: String!
-    fotoUrl: String
+    fotourl: String
 }
 
 input ClienteInput {
@@ -169,7 +169,7 @@ input DoctorUpdateInput {
     ci: String
     telefono: String
     email: String
-    fotoUrl: String
+    fotourl: String
 }
 
 input ClienteUpdateInput {

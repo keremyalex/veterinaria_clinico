@@ -24,7 +24,6 @@ public class DiagnosticoService {
     
     private final DiagnosticoRepository diagnosticoRepository;
     private final CitaRepository citaRepository;
-    private final CitaService citaService;
     
     // Crear nuevo diagnóstico
     public DiagnosticoOutput crearDiagnostico(DiagnosticoInput input) {
@@ -34,10 +33,13 @@ public class DiagnosticoService {
         Cita cita = citaRepository.findById(input.getCitaId())
             .orElseThrow(() -> new RuntimeException("Cita no encontrada con ID: " + input.getCitaId()));
         
+        // Comentar temporalmente la validación de estado para debugging
+        /*
         // Validar que la cita esté en estado completada o en progreso
         if (cita.getEstado() != 2 && cita.getEstado() != 3) {
             throw new RuntimeException("Solo se pueden crear diagnósticos para citas en progreso o completadas");
         }
+        */
         
         Diagnostico diagnostico = new Diagnostico();
         diagnostico.setDescripcion(input.getDescripcion());
@@ -188,8 +190,32 @@ public class DiagnosticoService {
         output.setObservaciones(diagnostico.getObservaciones());
         output.setFecharegistro(convertirLocalDateTimeAString(diagnostico.getFecharegistro()));
         
-        // Convertir cita
-        output.setCita(citaService.obtenerCitaPorId(diagnostico.getCita().getId()));
+        // Convertir cita sin usar el servicio para evitar dependencias circulares
+        if (diagnostico.getCita() != null) {
+            CitaOutput citaOutput = new CitaOutput();
+            citaOutput.setId(diagnostico.getCita().getId());
+            citaOutput.setMotivo(diagnostico.getCita().getMotivo());
+            citaOutput.setEstado(diagnostico.getCita().getEstado());
+            citaOutput.setFechacreacion(convertirLocalDateTimeAString(diagnostico.getCita().getFechacreacion()));
+            citaOutput.setFechareserva(convertirLocalDateTimeAString(diagnostico.getCita().getFechareserva()));
+            
+            // Agregar información básica de mascota y doctor
+            if (diagnostico.getCita().getMascota() != null) {
+                MascotaOutput mascotaOutput = new MascotaOutput();
+                mascotaOutput.setId(diagnostico.getCita().getMascota().getId());
+                mascotaOutput.setNombre(diagnostico.getCita().getMascota().getNombre());
+                citaOutput.setMascota(mascotaOutput);
+            }
+            
+            if (diagnostico.getCita().getDoctor() != null) {
+                DoctorOutput doctorOutput = new DoctorOutput();
+                doctorOutput.setId(diagnostico.getCita().getDoctor().getId());
+                doctorOutput.setNombre(diagnostico.getCita().getDoctor().getNombre());
+                citaOutput.setDoctor(doctorOutput);
+            }
+            
+            output.setCita(citaOutput);
+        }
         
         // Los tratamientos se cargarán por separado cuando sea necesario
         

@@ -229,6 +229,36 @@ public class MascotaService {
         return output;
     }
     
+    // ========== MÉTODOS PARA QUERY RESOLVERS ==========
+    
+    // Obtener todas las mascotas (entidades) con relaciones cargadas
+    @Transactional(readOnly = true)
+    public List<Mascota> obtenerTodas() {
+        log.info("Obteniendo todas las entidades Mascota con relaciones");
+        return mascotaRepository.findAllWithRelations();
+    }
+    
+    // Obtener mascota por ID (entidad) con relaciones cargadas
+    @Transactional(readOnly = true)
+    public java.util.Optional<Mascota> obtenerPorId(Long id) {
+        log.info("Obteniendo entidad Mascota por ID: {} con relaciones", id);
+        return mascotaRepository.findByIdWithRelations(id.intValue());
+    }
+    
+    // Obtener mascotas por cliente ID (entidades) con relaciones cargadas
+    @Transactional(readOnly = true)
+    public List<Mascota> obtenerPorClienteId(Long clienteId) {
+        log.info("Obteniendo entidades Mascota por cliente ID: {} con relaciones", clienteId);
+        return mascotaRepository.findByClienteIdWithRelations(clienteId.intValue());
+    }
+    
+    // Obtener mascotas por especie ID (entidades) con relaciones cargadas
+    @Transactional(readOnly = true)
+    public List<Mascota> obtenerPorEspecieId(Long especieId) {
+        log.info("Obteniendo entidades Mascota por especie ID: {} con relaciones", especieId);
+        return mascotaRepository.findByEspecieIdWithRelations(especieId.intValue());
+    }
+    
     // Método helper para convertir String a LocalDate
     private LocalDate convertirStringALocalDate(String fechaString) {
         if (fechaString == null || fechaString.trim().isEmpty()) {

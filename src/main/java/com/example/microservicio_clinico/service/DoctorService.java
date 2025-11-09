@@ -153,6 +153,29 @@ public class DoctorService {
         return true;
     }
     
+    // ========== MÉTODOS PARA QUERY RESOLVERS ==========
+    
+    // Obtener todos los doctores (entidades)
+    @Transactional(readOnly = true)
+    public List<Doctor> obtenerTodos() {
+        log.info("Obteniendo todas las entidades Doctor");
+        return doctorRepository.findAll();
+    }
+    
+    // Obtener doctor por ID (entidad)
+    @Transactional(readOnly = true)
+    public Optional<Doctor> obtenerPorId(Long id) {
+        log.info("Obteniendo entidad Doctor por ID: {}", id);
+        return doctorRepository.findById(id.intValue());
+    }
+    
+    // Obtener doctor por email (entidad)
+    @Transactional(readOnly = true)
+    public Optional<Doctor> obtenerPorEmail(String email) {
+        log.info("Obteniendo entidad Doctor por email: {}", email);
+        return doctorRepository.findByEmail(email);
+    }
+    
     // Método privado para convertir Entity a DTO
     private DoctorOutput convertirAOutput(Doctor doctor) {
         DoctorOutput output = new DoctorOutput();

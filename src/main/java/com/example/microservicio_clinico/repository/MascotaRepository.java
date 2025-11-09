@@ -35,4 +35,22 @@ public interface MascotaRepository extends JpaRepository<Mascota, Integer> {
     // Buscar mascotas de un cliente por nombre
     @Query("SELECT m FROM Mascota m WHERE m.cliente.id = :clienteId AND LOWER(m.nombre) LIKE LOWER(CONCAT('%', :nombre, '%'))")
     List<Mascota> findByClienteIdAndNombreContainingIgnoreCase(@Param("clienteId") Integer clienteId, @Param("nombre") String nombre);
+    
+    // ========== MÉTODOS CON EAGER LOADING PARA GRAPHQL ==========
+    
+    // Buscar todas las mascotas con relaciones cargadas
+    @Query("SELECT m FROM Mascota m LEFT JOIN FETCH m.cliente LEFT JOIN FETCH m.especie")
+    List<Mascota> findAllWithRelations();
+    
+    // Buscar mascota por ID con relaciones cargadas
+    @Query("SELECT m FROM Mascota m LEFT JOIN FETCH m.cliente LEFT JOIN FETCH m.especie WHERE m.id = :id")
+    java.util.Optional<Mascota> findByIdWithRelations(@Param("id") Integer id);
+    
+    // Buscar mascotas por cliente ID con relaciones cargadas
+    @Query("SELECT m FROM Mascota m LEFT JOIN FETCH m.cliente LEFT JOIN FETCH m.especie WHERE m.cliente.id = :clienteId")
+    List<Mascota> findByClienteIdWithRelations(@Param("clienteId") Integer clienteId);
+    
+    // Buscar mascotas por especie ID con relaciones cargadas
+    @Query("SELECT m FROM Mascota m LEFT JOIN FETCH m.cliente LEFT JOIN FETCH m.especie WHERE m.especie.id = :especieId")
+    List<Mascota> findByEspecieIdWithRelations(@Param("especieId") Integer especieId);
 }

@@ -257,6 +257,53 @@ public class CitaService {
         return true;
     }
     
+    // ========== MÉTODOS PARA QUERY RESOLVERS ==========
+    
+    // Obtener todas las citas (entidades) con relaciones cargadas
+    @Transactional(readOnly = true)
+    public List<Cita> obtenerTodas() {
+        log.info("Obteniendo todas las entidades Cita con relaciones");
+        return citaRepository.findAllWithRelations();
+    }
+    
+    // Obtener cita por ID (entidad) con relaciones cargadas
+    @Transactional(readOnly = true)
+    public java.util.Optional<Cita> obtenerPorId(Long id) {
+        log.info("Obteniendo entidad Cita por ID: {} con relaciones", id);
+        return citaRepository.findByIdWithRelations(id.intValue());
+    }
+    
+    // Obtener citas por mascota ID (entidades) con relaciones cargadas
+    @Transactional(readOnly = true)
+    public List<Cita> obtenerPorMascotaId(Long mascotaId) {
+        log.info("Obteniendo entidades Cita por mascota ID: {} con relaciones", mascotaId);
+        return citaRepository.findByMascotaIdWithRelations(mascotaId.intValue());
+    }
+    
+    // Obtener citas por doctor ID (entidades) con relaciones cargadas
+    @Transactional(readOnly = true)
+    public List<Cita> obtenerPorDoctorId(Long doctorId) {
+        log.info("Obteniendo entidades Cita por doctor ID: {} con relaciones", doctorId);
+        return citaRepository.findByDoctorIdWithRelations(doctorId.intValue());
+    }
+    
+    // Obtener citas por estado (entidades) con relaciones cargadas
+    @Transactional(readOnly = true)
+    public List<Cita> obtenerPorEstado(Integer estado) {
+        log.info("Obteniendo entidades Cita por estado: {} con relaciones", estado);
+        return citaRepository.findByEstadoWithRelations(estado);
+    }
+    
+    // Obtener citas por fecha (entidades) con relaciones cargadas
+    @Transactional(readOnly = true)
+    public List<Cita> obtenerPorFecha(java.time.LocalDate fecha) {
+        log.info("Obteniendo entidades Cita por fecha: {} con relaciones", fecha);
+        return citaRepository.findByFechareservaBetweenWithRelations(
+            fecha.atStartOfDay(), 
+            fecha.atTime(23, 59, 59)
+        );
+    }
+    
     // Método privado para convertir Entity a DTO
     private CitaOutput convertirAOutput(Cita cita) {
         CitaOutput output = new CitaOutput();

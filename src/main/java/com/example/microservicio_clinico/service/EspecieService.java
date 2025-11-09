@@ -115,6 +115,29 @@ public class EspecieService {
         return true;
     }
     
+    // ========== MÉTODOS PARA QUERY RESOLVERS ==========
+    
+    // Obtener todas las especies (entidades)
+    @Transactional(readOnly = true)
+    public List<Especie> obtenerTodas() {
+        log.info("Obteniendo todas las entidades Especie");
+        return especieRepository.findAll();
+    }
+    
+    // Obtener especie por ID (entidad)
+    @Transactional(readOnly = true)
+    public Optional<Especie> obtenerPorId(Long id) {
+        log.info("Obteniendo entidad Especie por ID: {}", id);
+        return especieRepository.findById(id.intValue());
+    }
+    
+    // Obtener especie por descripción (entidad)
+    @Transactional(readOnly = true)
+    public Optional<Especie> obtenerPorDescripcion(String descripcion) {
+        log.info("Obteniendo entidad Especie por descripción: {}", descripcion);
+        return especieRepository.findByDescripcion(descripcion);
+    }
+    
     // Método privado para convertir Entity a DTO
     private EspecieOutput convertirAOutput(Especie especie) {
         EspecieOutput output = new EspecieOutput();

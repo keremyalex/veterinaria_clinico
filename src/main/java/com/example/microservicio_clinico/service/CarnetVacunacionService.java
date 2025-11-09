@@ -161,6 +161,29 @@ public class CarnetVacunacionService {
         return true;
     }
     
+    // ========== MÉTODOS PARA QUERY RESOLVERS ==========
+    
+    // Obtener todos los carnets de vacunación (entidades) con relaciones cargadas
+    @Transactional(readOnly = true)
+    public List<CarnetVacunacion> obtenerTodos() {
+        log.info("Obteniendo todas las entidades CarnetVacunacion con relaciones");
+        return carnetVacunacionRepository.findAllWithRelations();
+    }
+    
+    // Obtener carnet de vacunación por ID (entidad) con relaciones cargadas
+    @Transactional(readOnly = true)
+    public java.util.Optional<CarnetVacunacion> obtenerPorId(Long id) {
+        log.info("Obteniendo entidad CarnetVacunacion por ID: {} con relaciones", id);
+        return carnetVacunacionRepository.findByIdWithRelations(id.intValue());
+    }
+    
+    // Obtener carnet de vacunación por mascota ID (entidad) con relaciones cargadas
+    @Transactional(readOnly = true)
+    public java.util.Optional<CarnetVacunacion> obtenerPorMascotaId(Long mascotaId) {
+        log.info("Obteniendo entidad CarnetVacunacion por mascota ID: {} con relaciones", mascotaId);
+        return carnetVacunacionRepository.findByMascotaIdWithRelations(mascotaId.intValue());
+    }
+    
     // Método privado para convertir Entity a DTO
     private CarnetVacunacionOutput convertirAOutput(CarnetVacunacion carnet) {
         CarnetVacunacionOutput output = new CarnetVacunacionOutput();

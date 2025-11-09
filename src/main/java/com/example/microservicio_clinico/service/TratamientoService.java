@@ -181,6 +181,29 @@ public class TratamientoService {
         return true;
     }
     
+    // ========== MÉTODOS PARA QUERY RESOLVERS ==========
+    
+    // Obtener todos los tratamientos (entidades) con relaciones cargadas
+    @Transactional(readOnly = true)
+    public List<Tratamiento> obtenerTodos() {
+        log.info("Obteniendo todas las entidades Tratamiento con relaciones");
+        return tratamientoRepository.findAllWithRelations();
+    }
+    
+    // Obtener tratamiento por ID (entidad) con relaciones cargadas
+    @Transactional(readOnly = true)
+    public java.util.Optional<Tratamiento> obtenerPorId(Long id) {
+        log.info("Obteniendo entidad Tratamiento por ID: {} con relaciones", id);
+        return tratamientoRepository.findByIdWithRelations(id.intValue());
+    }
+    
+    // Obtener tratamientos por diagnóstico ID (entidades) con relaciones cargadas
+    @Transactional(readOnly = true)
+    public List<Tratamiento> obtenerPorDiagnosticoId(Long diagnosticoId) {
+        log.info("Obteniendo entidades Tratamiento por diagnóstico ID: {} con relaciones", diagnosticoId);
+        return tratamientoRepository.findByDiagnosticoIdWithRelations(diagnosticoId.intValue());
+    }
+    
     // Método privado para convertir Entity a DTO
     private TratamientoOutput convertirAOutput(Tratamiento tratamiento) {
         TratamientoOutput output = new TratamientoOutput();

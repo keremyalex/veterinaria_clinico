@@ -244,6 +244,43 @@ public class DetalleVacunacionService {
         return true;
     }
     
+    // ========== MÉTODOS PARA QUERY RESOLVERS ==========
+    
+    // Obtener todos los detalles de vacunación (entidades) con relaciones cargadas
+    @Transactional(readOnly = true)
+    public List<DetalleVacunacion> obtenerTodos() {
+        log.info("Obteniendo todas las entidades DetalleVacunacion con relaciones");
+        return detalleVacunacionRepository.findAllWithRelations();
+    }
+    
+    // Obtener detalle de vacunación por ID (entidad) con relaciones cargadas
+    @Transactional(readOnly = true)
+    public java.util.Optional<DetalleVacunacion> obtenerPorId(Long id) {
+        log.info("Obteniendo entidad DetalleVacunacion por ID: {} con relaciones", id);
+        return detalleVacunacionRepository.findByIdWithRelations(id.intValue());
+    }
+    
+    // Obtener detalles de vacunación por carnet ID (entidades) con relaciones cargadas
+    @Transactional(readOnly = true)
+    public List<DetalleVacunacion> obtenerPorCarnetVacunacionId(Long carnetVacunacionId) {
+        log.info("Obteniendo entidades DetalleVacunacion por carnet ID: {} con relaciones", carnetVacunacionId);
+        return detalleVacunacionRepository.findByCarnetVacunacionIdWithRelations(carnetVacunacionId.intValue());
+    }
+    
+    // Obtener detalles de vacunación por mascota ID (entidades) con relaciones cargadas
+    @Transactional(readOnly = true)
+    public List<DetalleVacunacion> obtenerPorMascotaId(Long mascotaId) {
+        log.info("Obteniendo entidades DetalleVacunacion por mascota ID: {} con relaciones", mascotaId);
+        return detalleVacunacionRepository.findByMascotaIdWithRelations(mascotaId.intValue());
+    }
+    
+    // Obtener detalles de vacunación por vacuna ID (entidades) con relaciones cargadas
+    @Transactional(readOnly = true)
+    public List<DetalleVacunacion> obtenerPorVacunaId(Long vacunaId) {
+        log.info("Obteniendo entidades DetalleVacunacion por vacuna ID: {} con relaciones", vacunaId);
+        return detalleVacunacionRepository.findByVacunaIdWithRelations(vacunaId.intValue());
+    }
+    
     // Método privado para convertir Entity a DTO
     private DetalleVacunacionOutput convertirAOutput(DetalleVacunacion detalle) {
         DetalleVacunacionOutput output = new DetalleVacunacionOutput();

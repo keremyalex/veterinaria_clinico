@@ -29,4 +29,35 @@ public interface CarnetVacunacionRepository extends JpaRepository<CarnetVacunaci
     // Buscar carnets por especie de mascota
     @Query("SELECT c FROM CarnetVacunacion c WHERE c.mascota.especie.id = :especieId")
     List<CarnetVacunacion> findByEspecieId(@Param("especieId") Integer especieId);
+    
+    // ========== MÉTODOS CON EAGER LOADING PARA GRAPHQL ==========
+    
+    // Buscar todos los carnets de vacunación con relaciones cargadas
+    @Query("SELECT c FROM CarnetVacunacion c " +
+           "LEFT JOIN FETCH c.mascota m " +
+           "LEFT JOIN FETCH m.cliente " +
+           "LEFT JOIN FETCH m.especie " +
+           "LEFT JOIN FETCH c.detallesVacunacion dv " +
+           "LEFT JOIN FETCH dv.vacuna")
+    List<CarnetVacunacion> findAllWithRelations();
+    
+    // Buscar carnet de vacunación por ID con relaciones cargadas
+    @Query("SELECT c FROM CarnetVacunacion c " +
+           "LEFT JOIN FETCH c.mascota m " +
+           "LEFT JOIN FETCH m.cliente " +
+           "LEFT JOIN FETCH m.especie " +
+           "LEFT JOIN FETCH c.detallesVacunacion dv " +
+           "LEFT JOIN FETCH dv.vacuna " +
+           "WHERE c.id = :id")
+    java.util.Optional<CarnetVacunacion> findByIdWithRelations(@Param("id") Integer id);
+    
+    // Buscar carnet de vacunación por mascota ID con relaciones cargadas
+    @Query("SELECT c FROM CarnetVacunacion c " +
+           "LEFT JOIN FETCH c.mascota m " +
+           "LEFT JOIN FETCH m.cliente " +
+           "LEFT JOIN FETCH m.especie " +
+           "LEFT JOIN FETCH c.detallesVacunacion dv " +
+           "LEFT JOIN FETCH dv.vacuna " +
+           "WHERE c.mascota.id = :mascotaId")
+    java.util.Optional<CarnetVacunacion> findByMascotaIdWithRelations(@Param("mascotaId") Integer mascotaId);
 }

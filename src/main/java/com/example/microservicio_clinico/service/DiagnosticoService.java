@@ -182,6 +182,36 @@ public class DiagnosticoService {
         return true;
     }
     
+    // ========== MÉTODOS PARA QUERY RESOLVERS ==========
+    
+    // Obtener todos los diagnósticos (entidades) con relaciones cargadas
+    @Transactional(readOnly = true)
+    public List<Diagnostico> obtenerTodos() {
+        log.info("Obteniendo todas las entidades Diagnostico con relaciones");
+        return diagnosticoRepository.findAllWithRelations();
+    }
+    
+    // Obtener diagnóstico por ID (entidad) con relaciones cargadas
+    @Transactional(readOnly = true)
+    public java.util.Optional<Diagnostico> obtenerPorId(Long id) {
+        log.info("Obteniendo entidad Diagnostico por ID: {} con relaciones", id);
+        return diagnosticoRepository.findByIdWithRelations(id.intValue());
+    }
+    
+    // Obtener diagnósticos por cita ID (entidades) con relaciones cargadas
+    @Transactional(readOnly = true)
+    public List<Diagnostico> obtenerPorCitaId(Long citaId) {
+        log.info("Obteniendo entidades Diagnostico por cita ID: {} con relaciones", citaId);
+        return diagnosticoRepository.findByCitaIdWithRelations(citaId.intValue());
+    }
+    
+    // Obtener diagnósticos por mascota ID (entidades) con relaciones cargadas
+    @Transactional(readOnly = true)
+    public List<Diagnostico> obtenerPorMascotaId(Long mascotaId) {
+        log.info("Obteniendo entidades Diagnostico por mascota ID: {} con relaciones", mascotaId);
+        return diagnosticoRepository.findByMascotaIdWithRelations(mascotaId.intValue());
+    }
+    
     // Método privado para convertir Entity a DTO
     private DiagnosticoOutput convertirAOutput(Diagnostico diagnostico) {
         DiagnosticoOutput output = new DiagnosticoOutput();

@@ -121,6 +121,36 @@ public class BloqueHorarioService {
         return true;
     }
     
+    // ========== MÉTODOS PARA QUERY RESOLVERS ==========
+    
+    // Obtener todos los bloques horarios (entidades)
+    @Transactional(readOnly = true)
+    public List<BloqueHorario> obtenerTodos() {
+        log.info("Obteniendo todas las entidades BloqueHorario");
+        return bloqueHorarioRepository.findAll();
+    }
+    
+    // Obtener bloque horario por ID (entidad)
+    @Transactional(readOnly = true)
+    public java.util.Optional<BloqueHorario> obtenerPorId(Long id) {
+        log.info("Obteniendo entidad BloqueHorario por ID: {}", id);
+        return bloqueHorarioRepository.findById(id.intValue());
+    }
+    
+    // Obtener bloques horarios por día de semana (entidades)
+    @Transactional(readOnly = true)
+    public List<BloqueHorario> obtenerPorDiaSemana(Integer diasemana) {
+        log.info("Obteniendo entidades BloqueHorario por día de semana: {}", diasemana);
+        return bloqueHorarioRepository.findByDiasemana(diasemana);
+    }
+    
+    // Obtener bloques horarios activos (entidades)
+    @Transactional(readOnly = true)
+    public List<BloqueHorario> obtenerActivos() {
+        log.info("Obteniendo entidades BloqueHorario activos");
+        return bloqueHorarioRepository.findByActivo(1);
+    }
+    
     // Método privado para convertir Entity a DTO
     private BloqueHorarioOutput convertirAOutput(BloqueHorario bloqueHorario) {
         BloqueHorarioOutput output = new BloqueHorarioOutput();

@@ -146,6 +146,29 @@ public class ClienteService {
         return true;
     }
     
+    // ========== MÉTODOS PARA QUERY RESOLVERS ==========
+    
+    // Obtener todos los clientes (entidades)
+    @Transactional(readOnly = true)
+    public List<Cliente> obtenerTodos() {
+        log.info("Obteniendo todas las entidades Cliente");
+        return clienteRepository.findAll();
+    }
+    
+    // Obtener cliente por ID (entidad)
+    @Transactional(readOnly = true)
+    public Optional<Cliente> obtenerPorId(Long id) {
+        log.info("Obteniendo entidad Cliente por ID: {}", id);
+        return clienteRepository.findById(id.intValue());
+    }
+    
+    // Obtener cliente por CI (entidad)
+    @Transactional(readOnly = true)
+    public Optional<Cliente> obtenerPorCi(String ci) {
+        log.info("Obteniendo entidad Cliente por CI: {}", ci);
+        return clienteRepository.findByCi(ci);
+    }
+    
     // Método privado para convertir Entity a DTO
     private ClienteOutput convertirAOutput(Cliente cliente) {
         ClienteOutput output = new ClienteOutput();

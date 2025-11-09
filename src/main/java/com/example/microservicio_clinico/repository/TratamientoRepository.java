@@ -37,4 +37,41 @@ public interface TratamientoRepository extends JpaRepository<Tratamiento, Intege
     // Buscar tratamientos de una cita específica (a través del diagnóstico)
     @Query("SELECT t FROM Tratamiento t WHERE t.diagnostico.cita.id = :citaId")
     List<Tratamiento> findByCitaId(@Param("citaId") Integer citaId);
+    
+    // ========== MÉTODOS CON EAGER LOADING PARA GRAPHQL ==========
+    
+    // Buscar todos los tratamientos con relaciones cargadas
+    @Query("SELECT t FROM Tratamiento t " +
+           "LEFT JOIN FETCH t.diagnostico d " +
+           "LEFT JOIN FETCH d.cita c " +
+           "LEFT JOIN FETCH c.doctor " +
+           "LEFT JOIN FETCH c.mascota m " +
+           "LEFT JOIN FETCH m.cliente " +
+           "LEFT JOIN FETCH m.especie " +
+           "LEFT JOIN FETCH c.bloqueHorario")
+    List<Tratamiento> findAllWithRelations();
+    
+    // Buscar tratamiento por ID con relaciones cargadas
+    @Query("SELECT t FROM Tratamiento t " +
+           "LEFT JOIN FETCH t.diagnostico d " +
+           "LEFT JOIN FETCH d.cita c " +
+           "LEFT JOIN FETCH c.doctor " +
+           "LEFT JOIN FETCH c.mascota m " +
+           "LEFT JOIN FETCH m.cliente " +
+           "LEFT JOIN FETCH m.especie " +
+           "LEFT JOIN FETCH c.bloqueHorario " +
+           "WHERE t.id = :id")
+    java.util.Optional<Tratamiento> findByIdWithRelations(@Param("id") Integer id);
+    
+    // Buscar tratamientos por diagnóstico ID con relaciones cargadas
+    @Query("SELECT t FROM Tratamiento t " +
+           "LEFT JOIN FETCH t.diagnostico d " +
+           "LEFT JOIN FETCH d.cita c " +
+           "LEFT JOIN FETCH c.doctor " +
+           "LEFT JOIN FETCH c.mascota m " +
+           "LEFT JOIN FETCH m.cliente " +
+           "LEFT JOIN FETCH m.especie " +
+           "LEFT JOIN FETCH c.bloqueHorario " +
+           "WHERE t.diagnostico.id = :diagnosticoId")
+    List<Tratamiento> findByDiagnosticoIdWithRelations(@Param("diagnosticoId") Integer diagnosticoId);
 }

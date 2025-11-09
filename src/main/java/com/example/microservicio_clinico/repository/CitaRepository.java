@@ -44,4 +44,66 @@ public interface CitaRepository extends JpaRepository<Cita, Integer> {
     // Buscar citas por motivo (búsqueda parcial)
     @Query("SELECT c FROM Cita c WHERE LOWER(c.motivo) LIKE LOWER(CONCAT('%', :motivo, '%'))")
     List<Cita> findByMotivoContainingIgnoreCase(@Param("motivo") String motivo);
+    
+    // ========== MÉTODOS CON EAGER LOADING PARA GRAPHQL ==========
+    
+    // Buscar todas las citas con relaciones cargadas
+    @Query("SELECT c FROM Cita c " +
+           "LEFT JOIN FETCH c.doctor " +
+           "LEFT JOIN FETCH c.mascota m " +
+           "LEFT JOIN FETCH m.cliente " +
+           "LEFT JOIN FETCH m.especie " +
+           "LEFT JOIN FETCH c.bloqueHorario")
+    List<Cita> findAllWithRelations();
+    
+    // Buscar cita por ID con relaciones cargadas
+    @Query("SELECT c FROM Cita c " +
+           "LEFT JOIN FETCH c.doctor " +
+           "LEFT JOIN FETCH c.mascota m " +
+           "LEFT JOIN FETCH m.cliente " +
+           "LEFT JOIN FETCH m.especie " +
+           "LEFT JOIN FETCH c.bloqueHorario " +
+           "WHERE c.id = :id")
+    java.util.Optional<Cita> findByIdWithRelations(@Param("id") Integer id);
+    
+    // Buscar citas por doctor ID con relaciones cargadas
+    @Query("SELECT c FROM Cita c " +
+           "LEFT JOIN FETCH c.doctor " +
+           "LEFT JOIN FETCH c.mascota m " +
+           "LEFT JOIN FETCH m.cliente " +
+           "LEFT JOIN FETCH m.especie " +
+           "LEFT JOIN FETCH c.bloqueHorario " +
+           "WHERE c.doctor.id = :doctorId")
+    List<Cita> findByDoctorIdWithRelations(@Param("doctorId") Integer doctorId);
+    
+    // Buscar citas por mascota ID con relaciones cargadas
+    @Query("SELECT c FROM Cita c " +
+           "LEFT JOIN FETCH c.doctor " +
+           "LEFT JOIN FETCH c.mascota m " +
+           "LEFT JOIN FETCH m.cliente " +
+           "LEFT JOIN FETCH m.especie " +
+           "LEFT JOIN FETCH c.bloqueHorario " +
+           "WHERE c.mascota.id = :mascotaId")
+    List<Cita> findByMascotaIdWithRelations(@Param("mascotaId") Integer mascotaId);
+    
+    // Buscar citas por estado con relaciones cargadas
+    @Query("SELECT c FROM Cita c " +
+           "LEFT JOIN FETCH c.doctor " +
+           "LEFT JOIN FETCH c.mascota m " +
+           "LEFT JOIN FETCH m.cliente " +
+           "LEFT JOIN FETCH m.especie " +
+           "LEFT JOIN FETCH c.bloqueHorario " +
+           "WHERE c.estado = :estado")
+    List<Cita> findByEstadoWithRelations(@Param("estado") Integer estado);
+    
+    // Buscar citas por rango de fechas de reserva con relaciones cargadas
+    @Query("SELECT c FROM Cita c " +
+           "LEFT JOIN FETCH c.doctor " +
+           "LEFT JOIN FETCH c.mascota m " +
+           "LEFT JOIN FETCH m.cliente " +
+           "LEFT JOIN FETCH m.especie " +
+           "LEFT JOIN FETCH c.bloqueHorario " +
+           "WHERE c.fechareserva BETWEEN :fechaInicio AND :fechaFin")
+    List<Cita> findByFechareservaBetweenWithRelations(@Param("fechaInicio") LocalDateTime fechaInicio, 
+                                                     @Param("fechaFin") LocalDateTime fechaFin);
 }

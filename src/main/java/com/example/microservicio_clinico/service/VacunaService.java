@@ -115,6 +115,29 @@ public class VacunaService {
         return true;
     }
     
+    // ========== MÉTODOS PARA QUERY RESOLVERS ==========
+    
+    // Obtener todas las vacunas (entidades)
+    @Transactional(readOnly = true)
+    public List<Vacuna> obtenerTodas() {
+        log.info("Obteniendo todas las entidades Vacuna");
+        return vacunaRepository.findAll();
+    }
+    
+    // Obtener vacuna por ID (entidad)
+    @Transactional(readOnly = true)
+    public java.util.Optional<Vacuna> obtenerPorId(Long id) {
+        log.info("Obteniendo entidad Vacuna por ID: {}", id);
+        return vacunaRepository.findById(id.intValue());
+    }
+    
+    // Obtener vacuna por descripción (entidad)
+    @Transactional(readOnly = true)
+    public java.util.Optional<Vacuna> obtenerPorDescripcion(String descripcion) {
+        log.info("Obteniendo entidad Vacuna por descripción: {}", descripcion);
+        return vacunaRepository.findByDescripcion(descripcion);
+    }
+    
     // Método privado para convertir Entity a DTO
     private VacunaOutput convertirAOutput(Vacuna vacuna) {
         VacunaOutput output = new VacunaOutput();

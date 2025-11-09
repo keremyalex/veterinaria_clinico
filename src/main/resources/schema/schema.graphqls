@@ -256,10 +256,73 @@ input DetalleVacunacionUpdateInput {
     proximavacunacion: String
 }
 
-# Consultas básicas (mínimas para evitar errores)
+# Consultas principales
 type Query {
     # Query básica requerida
     health: String
+    
+    # Doctores
+    doctores: [Doctor!]!
+    doctor(id: ID!): Doctor
+    doctorPorEmail(email: String!): Doctor
+    
+    # Clientes
+    clientes: [Cliente!]!
+    cliente(id: ID!): Cliente
+    clientePorCi(ci: String!): Cliente
+    
+    # Mascotas
+    mascotas: [Mascota!]!
+    mascota(id: ID!): Mascota
+    mascotasPorCliente(clienteId: ID!): [Mascota!]!
+    mascotasPorEspecie(especieId: ID!): [Mascota!]!
+    
+    # Especies
+    especies: [Especie!]!
+    especie(id: ID!): Especie
+    especiePorDescripcion(descripcion: String!): Especie
+    
+    # Bloques Horarios
+    bloquesHorarios: [BloqueHorario!]!
+    bloqueHorario(id: ID!): BloqueHorario
+    bloquesHorariosPorDia(diasemana: Int!): [BloqueHorario!]!
+    bloquesHorariosActivos: [BloqueHorario!]!
+    
+    # Citas
+    citas: [Cita!]!
+    cita(id: ID!): Cita
+    citasPorMascota(mascotaId: ID!): [Cita!]!
+    citasPorDoctor(doctorId: ID!): [Cita!]!
+    citasPorEstado(estado: Int!): [Cita!]!
+    citasPorFecha(fecha: String!): [Cita!]!
+    
+    # Diagnósticos
+    diagnosticos: [Diagnostico!]!
+    diagnostico(id: ID!): Diagnostico
+    diagnosticosPorCita(citaId: ID!): [Diagnostico!]!
+    diagnosticosPorMascota(mascotaId: ID!): [Diagnostico!]!
+    
+    # Tratamientos
+    tratamientos: [Tratamiento!]!
+    tratamiento(id: ID!): Tratamiento
+    tratamientosPorDiagnostico(diagnosticoId: ID!): [Tratamiento!]!
+    
+    # Vacunas
+    vacunas: [Vacuna!]!
+    vacuna(id: ID!): Vacuna
+    vacunaPorDescripcion(descripcion: String!): Vacuna
+    
+    # Carnets de Vacunación
+    carnetsVacunacion: [CarnetVacunacion!]!
+    carnetVacunacion(id: ID!): CarnetVacunacion
+    carnetVacunacionPorMascota(mascotaId: ID!): CarnetVacunacion
+    
+    # Detalles de Vacunación
+    detallesVacunacion: [DetalleVacunacion!]!
+    detalleVacunacion(id: ID!): DetalleVacunacion
+    detallesVacunacionPorCarnet(carnetVacunacionId: ID!): [DetalleVacunacion!]!
+    detallesVacunacionPorMascota(mascotaId: ID!): [DetalleVacunacion!]!
+    detallesVacunacionPorVacuna(vacunaId: ID!): [DetalleVacunacion!]!
 }
 
 # Mutaciones principales

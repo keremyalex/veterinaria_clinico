@@ -39,4 +39,53 @@ public interface DiagnosticoRepository extends JpaRepository<Diagnostico, Intege
     List<Diagnostico> findByDoctorIdAndFecharegistroBetween(@Param("doctorId") Integer doctorId, 
                                                             @Param("fechaInicio") LocalDateTime fechaInicio, 
                                                             @Param("fechaFin") LocalDateTime fechaFin);
+    
+    // ========== MÉTODOS CON EAGER LOADING PARA GRAPHQL ==========
+    
+    // Buscar todos los diagnósticos con relaciones cargadas
+    @Query("SELECT d FROM Diagnostico d " +
+           "LEFT JOIN FETCH d.cita c " +
+           "LEFT JOIN FETCH c.doctor " +
+           "LEFT JOIN FETCH c.mascota m " +
+           "LEFT JOIN FETCH m.cliente " +
+           "LEFT JOIN FETCH m.especie " +
+           "LEFT JOIN FETCH c.bloqueHorario " +
+           "LEFT JOIN FETCH d.tratamientos")
+    List<Diagnostico> findAllWithRelations();
+    
+    // Buscar diagnóstico por ID con relaciones cargadas
+    @Query("SELECT d FROM Diagnostico d " +
+           "LEFT JOIN FETCH d.cita c " +
+           "LEFT JOIN FETCH c.doctor " +
+           "LEFT JOIN FETCH c.mascota m " +
+           "LEFT JOIN FETCH m.cliente " +
+           "LEFT JOIN FETCH m.especie " +
+           "LEFT JOIN FETCH c.bloqueHorario " +
+           "LEFT JOIN FETCH d.tratamientos " +
+           "WHERE d.id = :id")
+    java.util.Optional<Diagnostico> findByIdWithRelations(@Param("id") Integer id);
+    
+    // Buscar diagnósticos por cita ID con relaciones cargadas
+    @Query("SELECT d FROM Diagnostico d " +
+           "LEFT JOIN FETCH d.cita c " +
+           "LEFT JOIN FETCH c.doctor " +
+           "LEFT JOIN FETCH c.mascota m " +
+           "LEFT JOIN FETCH m.cliente " +
+           "LEFT JOIN FETCH m.especie " +
+           "LEFT JOIN FETCH c.bloqueHorario " +
+           "LEFT JOIN FETCH d.tratamientos " +
+           "WHERE d.cita.id = :citaId")
+    List<Diagnostico> findByCitaIdWithRelations(@Param("citaId") Integer citaId);
+    
+    // Buscar diagnósticos por mascota ID con relaciones cargadas
+    @Query("SELECT d FROM Diagnostico d " +
+           "LEFT JOIN FETCH d.cita c " +
+           "LEFT JOIN FETCH c.doctor " +
+           "LEFT JOIN FETCH c.mascota m " +
+           "LEFT JOIN FETCH m.cliente " +
+           "LEFT JOIN FETCH m.especie " +
+           "LEFT JOIN FETCH c.bloqueHorario " +
+           "LEFT JOIN FETCH d.tratamientos " +
+           "WHERE c.mascota.id = :mascotaId")
+    List<Diagnostico> findByMascotaIdWithRelations(@Param("mascotaId") Integer mascotaId);
 }

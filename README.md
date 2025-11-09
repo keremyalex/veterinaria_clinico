@@ -17,11 +17,12 @@ Microservicio para la gestión clínica veterinaria desarrollado con **Spring Bo
 
 ### Módulo Básico
 - **🐾 Especie**: Clasificación de animales (Perro, Gato, etc.)
-- **👤 Cliente**: Propietarios de las mascotas
+- **�‍⚕️ Doctor**: Profesionales veterinarios
+- **�👤 Cliente**: Propietarios de las mascotas
 - **🐕 Mascota**: Registro de mascotas con datos médicos
 
 ### Módulo de Citas
-- **⏰ Horario**: Disponibilidad de horarios veterinarios
+- **⏰ BloqueHorario**: Disponibilidad de horarios veterinarios
 - **📅 Cita**: Agendamiento de consultas
 
 ### Módulo Clínico
@@ -30,18 +31,19 @@ Microservicio para la gestión clínica veterinaria desarrollado con **Spring Bo
 
 ### Módulo de Vacunación
 - **💉 Vacuna**: Catálogo de vacunas disponibles
-- **📋 MascotaVacuna**: Historial de vacunación con fechas y recordatorios
+- **📋 CarnetVacunacion**: Carnet de vacunación de mascotas
+- **📝 DetalleVacunacion**: Historial detallado de vacunación con fechas y recordatorios
 
 ## 🛠️ Requisitos Previos
 
 - **Docker** >= 20.10
-- **Docker Compose** >= 2.0 (comando `docker compose` sin guión)
+- **Docker Compose** >= 2.0
 - **Java 17** (solo para desarrollo local)
 - **Maven 3.8+** (solo para desarrollo local)
 
 ## 🚀 Instalación y Ejecución
 
-### Opción 1: Con Docker (Recomendado)
+### Con Docker (Recomendado)
 
 1. **Clonar el repositorio**:
 ```bash
@@ -49,21 +51,12 @@ git clone <repository-url>
 cd microservicio_clinico
 ```
 
-2. **Configurar variables de entorno (Opcional)**:
-```bash
-# Copiar archivo de ejemplo
-cp .env.example .env
-
-# Editar .env con tus credenciales personalizadas
-# NUNCA commits el archivo .env a git
-```
-
-3. **Ejecutar con Docker Compose**:
+2. **Ejecutar con Docker Compose**:
 ```bash
 docker compose up -d
 ```
 
-3. **Verificar que los servicios estén corriendo**:
+3. **Verificar servicios**:
 ```bash
 docker compose ps
 ```
@@ -71,12 +64,9 @@ docker compose ps
 4. **Acceder a las interfaces**:
 - **GraphQL Playground**: http://localhost:8081/graphiql
 - **API Health Check**: http://localhost:8081/actuator/health
-- **Base de datos**: Conectar con tu gestor preferido a `localhost:5433`
-  - Usuario: `vet_admin`
-  - Contraseña: `VetClinic2025!SecurePass`
-  - Base de datos: `veterinaria_db`
+- **Base de datos**: `localhost:5433`
 
-### Opción 2: Desarrollo Local
+### Desarrollo Local
 
 1. **Iniciar PostgreSQL**:
 ```bash
@@ -86,6 +76,325 @@ docker compose up -d postgres
 2. **Ejecutar la aplicación**:
 ```bash
 mvn spring-boot:run
+```
+
+## � Ejemplos de Uso - Datos Completos de Prueba
+
+### 🎯 Orden de Ejecución
+
+Ejecuta estas mutations **en orden** para crear un sistema completo:
+
+### **1. Especies (Crear primero)**
+```graphql
+mutation { crearEspecie(input: { descripcion: "Perro" }) { id descripcion } }
+```
+```graphql
+mutation { crearEspecie(input: { descripcion: "Gato" }) { id descripcion } }
+```
+```graphql
+mutation { crearEspecie(input: { descripcion: "Conejo" }) { id descripcion } }
+```
+
+### **2. Doctores**
+```graphql
+mutation {
+  crearDoctor(input: {
+    nombre: "Dr. María"
+    apellido: "González"
+    ci: "12345678"
+    telefono: "555-0101"
+    email: "maria.gonzalez@veterinaria.com"
+    fotourl: "https://example.com/doctors/maria.jpg"
+  }) {
+    id nombre apellido email
+  }
+}
+```
+
+```graphql
+mutation {
+  crearDoctor(input: {
+    nombre: "Dr. Carlos"
+    apellido: "Rodríguez"
+    ci: "87654321"
+    telefono: "555-0102"
+    email: "carlos.rodriguez@veterinaria.com"
+    fotourl: "https://example.com/doctors/carlos.jpg"
+  }) {
+    id nombre apellido email
+  }
+}
+```
+
+### **3. Clientes**
+```graphql
+mutation {
+  crearCliente(input: {
+    nombre: "Ana"
+    apellido: "López"
+    ci: "11111111"
+    telefono: "555-1001"
+    fotourl: "https://example.com/clients/ana.jpg"
+  }) {
+    id nombre apellido telefono
+  }
+}
+```
+
+```graphql
+mutation {
+  crearCliente(input: {
+    nombre: "Pedro"
+    apellido: "Martínez"
+    ci: "22222222"
+    telefono: "555-1002"
+    fotourl: "https://example.com/clients/pedro.jpg"
+  }) {
+    id nombre apellido telefono
+  }
+}
+```
+
+### **4. Mascotas**
+```graphql
+mutation {
+  crearMascota(input: {
+    nombre: "Buddy"
+    sexo: "M"
+    raza: "Golden Retriever"
+    fotourl: "https://example.com/pets/buddy.jpg"
+    fechanacimiento: "2022-03-15"
+    clienteId: 1
+    especieId: 1
+  }) {
+    id nombre raza fechanacimiento
+    cliente { nombre }
+    especie { descripcion }
+  }
+}
+```
+
+```graphql
+mutation {
+  crearMascota(input: {
+    nombre: "Luna"
+    sexo: "F"
+    raza: "Persa"
+    fotourl: "https://example.com/pets/luna.jpg"
+    fechanacimiento: "2021-07-20"
+    clienteId: 2
+    especieId: 2
+  }) {
+    id nombre raza fechanacimiento
+    cliente { nombre }
+    especie { descripcion }
+  }
+}
+```
+
+### **5. BloqueHorarios**
+```graphql
+mutation {
+  crearBloqueHorario(input: {
+    diasemana: 1
+    horainicio: "08:00"
+    horafinal: "12:00"
+    activo: 1
+  }) {
+    id diasemana horainicio horafinal
+  }
+}
+```
+
+```graphql
+mutation {
+  crearBloqueHorario(input: {
+    diasemana: 1
+    horainicio: "14:00"
+    horafinal: "18:00"
+    activo: 1
+  }) {
+    id diasemana horainicio horafinal
+  }
+}
+```
+
+### **6. Vacunas**
+```graphql
+mutation { crearVacuna(input: { descripcion: "Antirrábica" }) { id descripcion } }
+```
+```graphql
+mutation { crearVacuna(input: { descripcion: "Parvovirus" }) { id descripcion } }
+```
+```graphql
+mutation { crearVacuna(input: { descripcion: "Triple Felina" }) { id descripcion } }
+```
+
+### **7. CarnetVacunacion**
+```graphql
+mutation {
+  crearCarnetVacunacion(input: {
+    fechaemision: "2024-01-15"
+    mascotaId: 1
+  }) {
+    id fechaemision
+    mascota { nombre }
+  }
+}
+```
+
+```graphql
+mutation {
+  crearCarnetVacunacion(input: {
+    fechaemision: "2024-02-10"
+    mascotaId: 2
+  }) {
+    id fechaemision
+    mascota { nombre }
+  }
+}
+```
+
+### **8. DetalleVacunacion**
+```graphql
+mutation {
+  crearDetalleVacunacion(input: {
+    fechavacunacion: "2024-01-15"
+    proximavacunacion: "2025-01-15"
+    carnetVacunacionId: 1
+    vacunaId: 1
+  }) {
+    id fechavacunacion proximavacunacion
+    carnetVacunacion { fechaemision }
+    vacuna { descripcion }
+  }
+}
+```
+
+```graphql
+mutation {
+  crearDetalleVacunacion(input: {
+    fechavacunacion: "2024-02-10"
+    proximavacunacion: "2025-02-10"
+    carnetVacunacionId: 2
+    vacunaId: 3
+  }) {
+    id fechavacunacion proximavacunacion
+    carnetVacunacion { fechaemision }
+    vacuna { descripcion }
+  }
+}
+```
+
+### **9. Citas**
+```graphql
+mutation {
+  crearCita(input: {
+    mascotaId: 1
+    doctorId: 1
+    bloqueHorarioId: 1
+    fechacreacion: "2024-11-08"
+    fechareserva: "2024-11-15"
+    motivo: "Consulta general y chequeo"
+    estado: 1
+  }) {
+    id fechacreacion fechareserva motivo estado
+    mascota { nombre }
+    doctor { nombre }
+  }
+}
+```
+
+```graphql
+mutation {
+  crearCita(input: {
+    mascotaId: 2
+    doctorId: 2
+    bloqueHorarioId: 2
+    fechacreacion: "2024-11-09"
+    fechareserva: "2024-11-16"
+    motivo: "Control post-vacunación"
+    estado: 2
+  }) {
+    id fechacreacion fechareserva motivo estado
+    mascota { nombre }
+    doctor { nombre }
+  }
+}
+```
+
+### **10. Diagnósticos**
+```graphql
+mutation {
+  crearDiagnostico(input: {
+    descripcion: "Infección leve en el oído"
+    observaciones: "El paciente presenta síntomas de otitis externa. Se recomienda tratamiento con antibióticos tópicos."
+    fecharegistro: "2024-11-15"
+    citaId: 1
+  }) {
+    id descripcion observaciones fecharegistro
+    cita {
+      motivo
+      mascota { nombre }
+    }
+  }
+}
+```
+
+```graphql
+mutation {
+  crearDiagnostico(input: {
+    descripcion: "Control post-vacunación normal"
+    observaciones: "La mascota se encuentra en buen estado después de la vacunación. No se observan reacciones adversas."
+    fecharegistro: "2024-11-16"
+    citaId: 2
+  }) {
+    id descripcion observaciones fecharegistro
+    cita {
+      motivo
+      mascota { nombre }
+    }
+  }
+}
+```
+
+### **11. Tratamientos**
+```graphql
+mutation {
+  crearTratamiento(input: {
+    nombre: "Tratamiento antibiótico tópico"
+    descripcion: "Aplicación de gotas antibióticas en el oído afectado"
+    observaciones: "Aplicar 3 gotas cada 8 horas durante 7 días. Evitar que el agua entre en el oído durante el tratamiento."
+    diagnosticoId: 1
+  }) {
+    id nombre descripcion observaciones
+    diagnostico {
+      descripcion
+      cita {
+        mascota { nombre }
+      }
+    }
+  }
+}
+```
+
+```graphql
+mutation {
+  crearTratamiento(input: {
+    nombre: "Seguimiento post-vacunación"
+    descripcion: "Observación y monitoreo después de la vacunación"
+    observaciones: "Revisar al paciente en 2 semanas para confirmar que no hay reacciones tardías a la vacuna."
+    diagnosticoId: 2
+  }) {
+    id nombre descripcion observaciones
+    diagnostico {
+      descripcion
+      cita {
+        mascota { nombre }
+      }
+    }
+  }
+}
 ```
 
 ## 📊 Arquitectura del Sistema
@@ -111,558 +420,26 @@ mvn spring-boot:run
 - **GraphQL Playground**: `http://localhost:8081/graphiql`
 - **Health Check**: `http://localhost:8081/actuator/health`
 
-## 📖 Documentación de Queries y Mutations
+## 📋 Notas Importantes
 
-### 🐾 Especies
+### 🗓️ Formato de Fechas
+- **Fechas simples**: `"2024-11-08"` (se convierte automáticamente a `YYYY-MM-DDTHH:mm:ss`)
+- **Fechas con hora**: `"2024-11-08T14:30:00"`
+- **Compatibilidad**: Frontend puede enviar fechas simples, backend las procesa correctamente
 
-#### Queries
-```graphql
-# Obtener todas las especies
-query {
-  especies {
-    id
-    descripcion
-  }
-}
+### 🔢 Estados de Cita
+- `1`: Programada
+- `2`: Confirmada
+- `3`: En proceso
+- `4`: Completada
+- `5`: Cancelada
 
-# Obtener especie por ID
-query {
-  especie(id: "1") {
-    id
-    descripcion
-  }
-}
-
-# Buscar especie por descripción
-query {
-  especieByDescripcion(descripcion: "Perro") {
-    id
-    descripcion
-  }
-}
-```
-
-#### Mutations
-```graphql
-# Crear nueva especie
-mutation {
-  createEspecie(input: {
-    descripcion: "Perro"
-  }) {
-    id
-    descripcion
-  }
-}
-
-# Actualizar especie
-mutation {
-  updateEspecie(input: {
-    id: "1"
-    descripcion: "Canino"
-  }) {
-    id
-    descripcion
-  }
-}
-
-# Eliminar especie
-mutation {
-  deleteEspecie(id: "1")
-}
-```
-
-### 👤 Clientes
-
-#### Queries
-```graphql
-# Obtener todos los clientes
-query {
-  clientes {
-    id
-    nombre
-    apellidos
-    email
-    telefono
-    fechaNacimiento
-  }
-}
-
-# Buscar cliente por email
-query {
-  clienteByEmail(email: "juan@example.com") {
-    id
-    nombre
-    apellidos
-    telefono
-  }
-}
-
-# Buscar clientes por término
-query {
-  searchClientes(searchTerm: "Juan") {
-    id
-    nombre
-    apellidos
-    email
-  }
-}
-```
-
-#### Mutations
-```graphql
-# Crear nuevo cliente
-mutation {
-  createCliente(input: {
-    nombre: "Juan"
-    apellidos: "Pérez García"
-    email: "juan.perez@example.com"
-    telefono: "+57 300 123 4567"
-    fechaNacimiento: "1985-03-15"
-  }) {
-    id
-    nombre
-    apellidos
-    email
-  }
-}
-```
-
-### 🐕 Mascotas
-
-#### Queries
-```graphql
-# Obtener todas las mascotas con relaciones
-query {
-  mascotas {
-    id
-    nombre
-    sexo
-    raza
-    fechaNacimiento
-    peso
-    cliente {
-      nombre
-      apellidos
-    }
-    especie {
-      descripcion
-    }
-  }
-}
-
-# Obtener mascotas por cliente
-query {
-  mascotasByCliente(clienteId: "1") {
-    id
-    nombre
-    raza
-    especie {
-      descripcion
-    }
-  }
-}
-
-# Buscar mascotas por sexo
-query {
-  mascotasBySexo(sexo: "Macho") {
-    id
-    nombre
-    raza
-    cliente {
-      nombre
-      telefono
-    }
-  }
-}
-```
-
-#### Mutations
-```graphql
-# Crear nueva mascota
-mutation {
-  createMascota(input: {
-    nombre: "Max"
-    sexo: "Macho"
-    raza: "Golden Retriever"
-    fechaNacimiento: "2020-05-10"
-    peso: 25.5
-    clienteId: "1"
-    especieId: "1"
-  }) {
-    id
-    nombre
-    raza
-    cliente {
-      nombre
-    }
-    especie {
-      descripcion
-    }
-  }
-}
-```
-
-### ⏰ Horarios
-
-#### Queries
-```graphql
-# Obtener horarios por día
-query {
-  horariosByDia(dia: "Lunes") {
-    id
-    dia
-    horaInicio
-    horaFin
-  }
-}
-```
-
-#### Mutations
-```graphql
-# Crear nuevo horario
-mutation {
-  createHorario(input: {
-    dia: "Lunes"
-    horaInicio: "08:00"
-    horaFin: "12:00"
-  }) {
-    id
-    dia
-    horaInicio
-    horaFin
-  }
-}
-```
-
-### 📅 Citas
-
-#### Queries
-```graphql
-# Obtener citas con todas las relaciones
-query {
-  citas {
-    id
-    fechaReservacion
-    motivo
-    fechaProgramada
-    cliente {
-      nombre
-      apellidos
-      telefono
-    }
-    mascota {
-      nombre
-      raza
-    }
-    horario {
-      dia
-      horaInicio
-    }
-  }
-}
-
-# Obtener citas por mascota
-query {
-  citasByMascota(mascotaId: "1") {
-    id
-    motivo
-    fechaProgramada
-    cliente {
-      nombre
-      telefono
-    }
-  }
-}
-```
-
-#### Mutations
-```graphql
-# Crear nueva cita
-mutation {
-  createCita(input: {
-    motivo: "Consulta de rutina"
-    fechaProgramada: "2025-11-05 10:00"
-    clienteId: "1"
-    horarioId: "1"
-    mascotaId: "1"
-  }) {
-    id
-    motivo
-    fechaProgramada
-    cliente {
-      nombre
-    }
-    mascota {
-      nombre
-    }
-  }
-}
-```
-
-### 🩺 Diagnósticos
-
-#### Queries
-```graphql
-# Obtener diagnósticos por mascota
-query {
-  diagnosticosByMascota(mascotaId: "1") {
-    id
-    descripcion
-    fechaDiagnostico
-    observaciones
-    mascota {
-      nombre
-      cliente {
-        nombre
-        telefono
-      }
-    }
-  }
-}
-```
-
-#### Mutations
-```graphql
-# Crear nuevo diagnóstico
-mutation {
-  createDiagnostico(input: {
-    descripcion: "Infección respiratoria leve"
-    observaciones: "Tratamiento con antibióticos recomendado"
-    mascotaId: "1"
-  }) {
-    id
-    descripcion
-    fechaDiagnostico
-    observaciones
-  }
-}
-```
-
-### 💊 Tratamientos
-
-#### Queries
-```graphql
-# Obtener tratamientos por diagnóstico
-query {
-  tratamientosByDiagnostico(diagnosticoId: "1") {
-    id
-    descripcion
-    fechaInicio
-    fechaFin
-    instrucciones
-    estado
-    diagnostico {
-      descripcion
-      mascota {
-        nombre
-      }
-    }
-  }
-}
-
-# Obtener tratamientos por estado
-query {
-  tratamientosByEstado(estado: "ACTIVO") {
-    id
-    descripcion
-    fechaInicio
-    estado
-  }
-}
-```
-
-#### Mutations
-```graphql
-# Crear nuevo tratamiento
-mutation {
-  createTratamiento(input: {
-    descripcion: "Antibiótico oral"
-    fechaInicio: "2025-11-01"
-    fechaFin: "2025-11-08"
-    instrucciones: "Administrar 1 tableta cada 12 horas con comida"
-    estado: "ACTIVO"
-    diagnosticoId: "1"
-  }) {
-    id
-    descripcion
-    instrucciones
-    estado
-  }
-}
-```
-
-### 💉 Vacunas
-
-#### Queries
-```graphql
-# Obtener todas las vacunas
-query {
-  vacunas {
-    id
-    nombre
-    descripcion
-    duracionMeses
-    laboratorio
-    edadMinimaDias
-  }
-}
-
-# Buscar vacunas por laboratorio
-query {
-  vacunasByLaboratorio(laboratorio: "Pfizer Animal Health") {
-    id
-    nombre
-    descripcion
-    duracionMeses
-  }
-}
-
-# Buscar vacunas por nombre
-query {
-  vacunasByNombre(nombre: "Rabia") {
-    id
-    nombre
-    laboratorio
-    edadMinimaDias
-  }
-}
-```
-
-#### Mutations
-```graphql
-# Crear nueva vacuna
-mutation {
-  createVacuna(input: {
-    nombre: "Rabia"
-    descripcion: "Vacuna contra la rabia para perros y gatos"
-    duracionMeses: 12
-    laboratorio: "Pfizer Animal Health"
-    edadMinimaDias: 90
-  }) {
-    id
-    nombre
-    descripcion
-    duracionMeses
-    laboratorio
-    edadMinimaDias
-  }
-}
-```
-
-### 📋 Historial de Vacunación
-
-#### Queries
-```graphql
-# Obtener historial de vacunación por mascota
-query {
-  vacunasByMascota(mascotaId: "1") {
-    id
-    fechaAplicacion
-    fechaProximaDosis
-    veterinario
-    observaciones
-    lote
-    mascota {
-      nombre
-      cliente {
-        nombre
-        telefono
-      }
-    }
-    vacuna {
-      nombre
-      descripcion
-      laboratorio
-    }
-  }
-}
-
-# Obtener vacunas próximas a vencer
-query {
-  vacunasPorVencer(fecha: "2026-12-31 23:59") {
-    id
-    fechaProximaDosis
-    mascota {
-      nombre
-      cliente {
-        nombre
-        apellidos
-        telefono
-        email
-      }
-    }
-    vacuna {
-      nombre
-    }
-  }
-}
-
-# Obtener aplicaciones por tipo de vacuna
-query {
-  aplicacionesByVacuna(vacunaId: "1") {
-    id
-    fechaAplicacion
-    veterinario
-    mascota {
-      nombre
-      cliente {
-        nombre
-      }
-    }
-  }
-}
-```
-
-#### Mutations
-```graphql
-# Aplicar vacuna a mascota
-mutation {
-  aplicarVacuna(input: {
-    mascotaId: "1"
-    vacunaId: "1"
-    fechaAplicacion: "2025-11-01 10:00"
-    veterinario: "Dr. García"
-    observaciones: "Primera dosis, mascota en buen estado"
-    lote: "RAB-2025-001"
-  }) {
-    id
-    fechaAplicacion
-    fechaProximaDosis
-    veterinario
-    observaciones
-    lote
-    mascota {
-      nombre
-    }
-    vacuna {
-      nombre
-    }
-  }
-}
-
-# Actualizar registro de vacunación
-mutation {
-  updateMascotaVacuna(input: {
-    id: "1"
-    fechaProximaDosis: "2026-11-01 10:00"
-    observaciones: "Próxima dosis programada"
-  }) {
-    id
-    fechaProximaDosis
-    observaciones
-  }
-}
-```
+### � Estructura de Base de Datos
+- **Autogeneración**: Las tablas se crean automáticamente con JPA
+- **Relaciones**: Configuradas con claves foráneas optimizadas
+- **Índices**: Optimizados para consultas GraphQL
 
 ## 🔧 Configuración
-
-### 🔐 Seguridad de Credenciales
-
-**⚠️ IMPORTANTE**: Las credenciales incluidas son para desarrollo local. Para producción:
-
-1. **Cambia todas las credenciales por defecto**
-2. **Usa contraseñas fuertes** (mínimo 12 caracteres, con mayúsculas, minúsculas, números y símbolos)
-3. **Usa variables de entorno** en lugar de valores hardcodeados
 
 ### Variables de Entorno
 
@@ -672,13 +449,6 @@ mutation {
 | `SPRING_DATASOURCE_USERNAME` | Usuario de base de datos | `vet_admin` |
 | `SPRING_DATASOURCE_PASSWORD` | Contraseña de base de datos | `VetClinic2025!SecurePass` |
 | `SERVER_PORT` | Puerto del servidor | `8081` |
-| `SPRING_JPA_SHOW_SQL` | Mostrar consultas SQL | `true` |
-| `DGS_GRAPHQL_GRAPHIQL_ENABLED` | Habilitar GraphQL Playground | `true` |
-
-### Profiles de Spring
-
-- **default**: Configuración local de desarrollo
-- **docker**: Configuración optimizada para contenedores
 
 ## 📊 Monitoreo y Logs
 
@@ -686,9 +456,6 @@ mutation {
 ```bash
 # Verificar salud de la aplicación
 curl http://localhost:8081/actuator/health
-
-# Verificar métricas
-curl http://localhost:8081/actuator/metrics
 ```
 
 ### Ver logs en tiempo real
@@ -712,64 +479,11 @@ docker compose down
 # Reiniciar solo la aplicación
 docker compose restart microservicio-clinico
 
-# Eliminar volúmenes (⚠️ Borra datos)
-docker compose down -v
-
 # Ver estado de servicios
 docker compose ps
-
-# Ejecutar comandos dentro del contenedor
-docker compose exec microservicio-clinico bash
 ```
 
-## 🔍 Troubleshooting
-
-### Problemas Comunes
-
-1. **Puerto 8081 ocupado**:
-```bash
-# Cambiar puerto en docker-compose.yml
-ports:
-  - "8082:8081"  # Usar puerto 8082 en lugar de 8081
-```
-
-2. **Error de conexión a base de datos**:
-```bash
-# Verificar que PostgreSQL esté corriendo
-docker compose ps postgres
-
-# Reiniciar PostgreSQL
-docker compose restart postgres
-```
-
-3. **Limpiar cache de Docker**:
-```bash
-docker system prune -a
-docker compose build --no-cache
-```
-
-## 🤝 Contribución
-
-1. Fork del repositorio
-2. Crear rama feature (`git checkout -b feature/nueva-funcionalidad`)
-3. Commit cambios (`git commit -m 'Agregar nueva funcionalidad'`)
-4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
-5. Crear Pull Request
-
-## 📄 Licencia
-
-Este proyecto está bajo la Licencia MIT. Ver `LICENSE` para más detalles.
-
-## 👥 Equipo de Desarrollo
-
-- **Backend**: Spring Boot + GraphQL Federation
-- **Base de Datos**: PostgreSQL con optimizaciones
-- **DevOps**: Docker + Docker Compose
-- **Documentación**: Markdown + GraphQL Schema
-
----
-
-### 🚀 ¡Listo para Producción!
+## 🚀 ¡Listo para Producción!
 
 Este microservicio está preparado para:
 - ✅ Integración con GraphQL Federation Gateway
@@ -777,6 +491,11 @@ Este microservicio está preparado para:
 - ✅ Escalabilidad horizontal
 - ✅ Monitoreo y health checks
 - ✅ Persistencia de datos
-- ✅ Documentación completa
+- ✅ **Datos de prueba completos**
+
+---
+
+**🎯 Orden recomendado para pruebas:**
+1. Especies → 2. Doctores → 3. Clientes → 4. Mascotas → 5. BloqueHorarios → 6. Vacunas → 7. CarnetVacunacion → 8. DetalleVacunacion → 9. Citas → 10. Diagnósticos → 11. Tratamientos
 
 **¿Necesitas ayuda?** Consulta los logs, revisa la documentación de GraphQL en `/graphiql`, o verifica los health checks en `/actuator/health`.

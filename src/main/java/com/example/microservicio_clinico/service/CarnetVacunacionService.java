@@ -177,11 +177,33 @@ public class CarnetVacunacionService {
     
     // Método helper para convertir String a LocalDateTime
     private LocalDateTime convertirStringALocalDateTime(String fechaStr) {
-        try {
-            return LocalDateTime.parse(fechaStr, DATETIME_FORMATTER);
-        } catch (DateTimeParseException e) {
-            throw new RuntimeException("Formato de fecha inválido. Use yyyy-MM-ddTHH:mm:ss. Valor recibido: " + fechaStr, e);
+        if (fechaStr == null || fechaStr.trim().isEmpty()) {
+            throw new RuntimeException("La fecha no puede estar vacía");
         }
+        
+        String fechaNormalizada = fechaStr.trim();
+        
+        try {
+            // Si es solo una fecha (YYYY-MM-DD), agregar tiempo por defecto
+            if (fechaNormalizada.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                fechaNormalizada += "T00:00:00";
+                return LocalDateTime.parse(fechaNormalizada, DATETIME_FORMATTER);
+            }
+            
+            // Si ya tiene tiempo, intentar parsear directamente
+            if (fechaNormalizada.contains("T")) {
+                return LocalDateTime.parse(fechaNormalizada, DATETIME_FORMATTER);
+            }
+            
+        } catch (DateTimeParseException e) {
+            log.error("Error al parsear la fecha: {}", fechaStr);
+            throw new RuntimeException("Formato de fecha inválido: " + fechaStr + 
+                                     ". Use formato YYYY-MM-DD o YYYY-MM-DDTHH:mm:ss", e);
+        }
+        
+        log.error("Error al parsear la fecha después de todos los intentos: {}", fechaStr);
+        throw new RuntimeException("Formato de fecha inválido: " + fechaStr + 
+                                 ". Use formato YYYY-MM-DD o YYYY-MM-DDTHH:mm:ss");
     }
     
     // Método helper para convertir LocalDateTime a String

@@ -792,6 +792,47 @@ query {
     }
   }
 }
+
+# Cita por fecha
+
+query {
+  citasPorFecha(fecha: "2024-11-15") {
+    id
+    fechacreacion
+    motivo
+    fechareserva
+    estado
+    doctor {
+      id
+      nombre
+      apellido
+      ci
+      telefono
+      email
+    }
+    mascota {
+      id
+      nombre
+      raza
+      fechanacimiento
+      cliente {
+        nombre
+        apellido
+        ci
+      }
+      especie {
+        descripcion
+      }
+    }
+    bloqueHorario {
+      id
+      diasemana
+      horainicio
+      horafinal
+      activo
+    }
+  }
+}
 ```
 
 **🎯 Orden recomendado para pruebas:**

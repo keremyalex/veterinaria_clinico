@@ -41,7 +41,6 @@ type Especie @key(fields: "id") {
 type BloqueHorario @key(fields: "id") {
     id: ID!
     diasemana: Int!
-    diasemanaNombre: String!
     horainicio: String!
     horafinal: String!
     activo: Int!
@@ -53,7 +52,6 @@ type Cita @key(fields: "id") {
     motivo: String!
     fechareserva: String!
     estado: Int!
-    estadoNombre: String!
     doctor: Doctor!
     mascota: Mascota!
     bloqueHorario: BloqueHorario

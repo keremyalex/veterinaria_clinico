@@ -495,6 +495,305 @@ Este microservicio está preparado para:
 
 ---
 
+## 🔍 Ejemplos de Queries GraphQL
+
+### 1. Query de Mascotas con Relaciones
+```graphql
+query {
+  mascotas {
+    id
+    nombre
+    raza
+    sexo
+    fechanacimiento
+    fotourl
+    cliente {
+      id
+      nombre
+      apellido
+      ci
+      telefono
+      fotourl
+    }
+    especie {
+      id
+      descripcion
+    }
+  }
+}
+```
+
+### 2. Query de Citas con Relaciones
+```graphql
+query {
+  citas {
+    id
+    fechacreacion
+    motivo
+    fechareserva
+    estado
+    doctor {
+      id
+      nombre
+      apellido
+      ci
+      telefono
+      email
+      fotourl
+    }
+    mascota {
+      id
+      nombre
+      raza
+      fechanacimiento
+      cliente {
+        nombre
+        apellido
+        ci
+      }
+      especie {
+        descripcion
+      }
+    }
+    bloqueHorario {
+      id
+      diasemana
+      horainicio
+      horafinal
+      activo
+    }
+  }
+}
+```
+
+### 3. Query de Diagnósticos con Relaciones
+```graphql
+query {
+  diagnosticos {
+    id
+    descripcion
+    fecharegistro
+    observaciones
+    cita {
+      id
+      fechacreacion
+      motivo
+      fechareserva
+      doctor {
+        nombre
+        apellido
+        ci
+      }
+      mascota {
+        nombre
+        cliente {
+          nombre
+          apellido
+        }
+      }
+    }
+    tratamientos {
+      id
+      nombre
+      descripcion
+      observaciones
+    }
+  }
+}
+```
+
+### 4. Query de Tratamientos con Relaciones
+```graphql
+query {
+  tratamientos {
+    id
+    nombre
+    descripcion
+    observaciones
+    diagnostico {
+      id
+      descripcion
+      fecharegistro
+      cita {
+        id
+        fechareserva
+        mascota {
+          nombre
+          cliente {
+            nombre
+            apellido
+          }
+        }
+        doctor {
+          nombre
+          apellido
+        }
+      }
+    }
+  }
+}
+```
+
+### 5. Query de Carnets de Vacunación con Relaciones
+```graphql
+query {
+  carnetsVacunacion {
+    id
+    fechaemision
+    mascota {
+      id
+      nombre
+      raza
+      cliente {
+        nombre
+        apellido
+        ci
+      }
+      especie {
+        descripcion
+      }
+    }
+    detallesVacunacion {
+      id
+      fechavacunacion
+      proximavacunacion
+      vacuna {
+        id
+        descripcion
+      }
+    }
+  }
+}
+```
+
+### 6. Query de Detalles de Vacunación con Relaciones
+```graphql
+query {
+  detallesVacunacion {
+    id
+    fechavacunacion
+    proximavacunacion
+    vacuna {
+      id
+      descripcion
+    }
+    carnetVacunacion {
+      id
+      fechaemision
+      mascota {
+        nombre
+        cliente {
+          nombre
+          apellido
+        }
+      }
+    }
+  }
+}
+```
+
+### 7. Query de Doctores
+```graphql
+query {
+  doctores {
+    id
+    nombre
+    apellido
+    ci
+    telefono
+    email
+    fotourl
+  }
+}
+```
+
+### 8. Query de Clientes
+```graphql
+query {
+  clientes {
+    id
+    nombre
+    apellido
+    ci
+    telefono
+    fotourl
+  }
+}
+```
+
+### 9. Query de Especies
+```graphql
+query {
+  especies {
+    id
+    descripcion
+  }
+}
+```
+
+### 10. Query de Vacunas
+```graphql
+query {
+  vacunas {
+    id
+    descripcion
+  }
+}
+```
+
+### 11. Query de Bloques Horarios
+```graphql
+query {
+  bloquesHorarios {
+    id
+    diasemana
+    horainicio
+    horafinal
+    activo
+  }
+}
+```
+
+### 12. Queries Específicas por ID
+```graphql
+# Mascota específica
+query {
+  mascota(id: 1) {
+    id
+    nombre
+    fechanacimiento
+    raza
+    cliente {
+      nombre
+      apellido
+    }
+    especie {
+      descripcion
+    }
+  }
+}
+
+# Cita específica
+query {
+  cita(id: 1) {
+    id
+    fechareserva
+    motivo
+    estado
+    doctor {
+      nombre
+      apellido
+    }
+    mascota {
+      nombre
+      cliente {
+        nombre
+      }
+    }
+  }
+}
+```
+
 **🎯 Orden recomendado para pruebas:**
 1. Especies → 2. Doctores → 3. Clientes → 4. Mascotas → 5. BloqueHorarios → 6. Vacunas → 7. CarnetVacunacion → 8. DetalleVacunacion → 9. Citas → 10. Diagnósticos → 11. Tratamientos
 
